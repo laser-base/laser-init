@@ -56,7 +56,7 @@ __MAX_YEAR__ = 2100
 )
 @click.option(
     "--model",
-    type=click.Choice(["SI", "SIR", "SEIR"], case_sensitive=False),
+    type=click.Choice(["SI", "SIR", "SEIR", "MEASLES"], case_sensitive=False),
     default="SEIR",
     help="Select the type of epidemiological model to prepare data for (default: SEIR)",
 )
@@ -106,7 +106,7 @@ def cli(
         end_year: End year for simulation (1950-2100, must be >= start_year).
         output_dir: Output directory path. If None, defaults to "./ISOCODE/start_year".
         mode: Modeling mode, either "ABM" (agent-based model) or "MPM" (metapopulation model).
-        model: Epidemiological model type - "SI", "SIR", or "SEIR".
+        model: Epidemiological model type - "SI", "SIR", "SEIR", or "MEASLES".
         shape_source: Administrative boundary data source - "unocha", "geoboundaries", or "gadm".
             If None, uses config value or defaults to "unocha".
         raster_source: Population raster data source - currently only "worldpop" supported.
@@ -436,7 +436,7 @@ def emit_model_script(
 
     Args:
         mode: Model mode ("ABM" or "MPM").
-        model: Model type ("SI", "SIR", or "SEIR").
+        model: Model type ("SI", "SIR", "SEIR", or "MEASLES").
         shapes_filename: Path to the administrative boundaries GeoPackage.
         cxr_filename: Path to the crude birth/death rate CSV.
         pop_filename: Path to the age distribution CSV.
@@ -458,6 +458,7 @@ def emit_model_script(
         "ABM/SI": abm.AbmLoader,
         "ABM/SIR": abm.AbmLoader,
         "ABM/SEIR": abm.AbmLoader,
+        "ABM/MEASLES": abm.AbmLoader,
         "MPM/SI": mpm.MpmLoader,
         "MPM/SIR": mpm.MpmLoader,
         "MPM/SEIR": mpm.MpmLoader,
