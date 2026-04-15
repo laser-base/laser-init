@@ -269,6 +269,126 @@ class TestAbmLoader:
         assert config is not None
         assert isinstance(config, dict)
 
+    def test_abm_emit_script_measles_model(self, tmp_path):
+        """Test that emit_script works for MEASLES model.
+
+        Given MEASLES model type
+        When emit_script() is called
+        Then it should create measles.py, measles_plot.py, and config.yaml
+
+        Failure indicates MEASLES model generation is broken.
+        """
+        loader = abm.AbmLoader()
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        # Create dummy input files
+        shape_file = tmp_path / "shapes.gpkg"
+        cxr_file = tmp_path / "cxr.csv"
+        pop_file = tmp_path / "pop.csv"
+        exp_file = tmp_path / "exp.csv"
+
+        for f in [shape_file, cxr_file, pop_file, exp_file]:
+            f.touch()
+
+        loader.emit_script(
+            mode="ABM",
+            model="MEASLES",
+            shape_filename=shape_file,
+            cxr_filename=cxr_file,
+            pop_filename=pop_file,
+            exp_filename=exp_file,
+            output_dir=output_dir,
+        )
+
+        assert (output_dir / "measles.py").exists(), "measles.py should be created"
+        assert (
+            output_dir / "measles_plot.py"
+        ).exists(), "measles_plot.py should be created"
+        assert (output_dir / "config.yaml").exists(), "config.yaml should be created"
+
+    def test_abm_measles_config_has_correct_keys(self, tmp_path):
+        """Test that measles config.yaml contains expected keys.
+
+        Given MEASLES model type
+        When emit_script() generates config.yaml
+        Then it should contain measles-specific simulation parameters
+
+        Failure indicates measles config template is malformed.
+        """
+        import yaml
+
+        loader = abm.AbmLoader()
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        shape_file = tmp_path / "shapes.gpkg"
+        cxr_file = tmp_path / "cxr.csv"
+        pop_file = tmp_path / "pop.csv"
+        exp_file = tmp_path / "exp.csv"
+
+        for f in [shape_file, cxr_file, pop_file, exp_file]:
+            f.touch()
+
+        loader.emit_script(
+            mode="ABM",
+            model="MEASLES",
+            shape_filename=shape_file,
+            cxr_filename=cxr_file,
+            pop_filename=pop_file,
+            exp_filename=exp_file,
+            output_dir=output_dir,
+        )
+
+        config = yaml.safe_load((output_dir / "config.yaml").read_text())
+        assert "data_dir" in config
+        assert "datafiles" in config
+        assert "shape_data" in config["datafiles"]
+        assert "cxr_data" in config["datafiles"]
+        sim = config["simulation"]
+        assert "beta" in sim
+        assert "seasonality" in sim
+        assert "distance_exponent" in sim
+        assert "mixing_scale" in sim
+        assert "initial_infections" in sim
+        assert "naive_population" in sim
+
+    def test_abm_measles_does_not_create_generic_files(self, tmp_path):
+        """Test that MEASLES model does not create generic model files.
+
+        Given MEASLES model type
+        When emit_script() is called
+        Then it should NOT create plot.py or any generic model scripts
+
+        Failure indicates MEASLES routing is leaking to generic path.
+        """
+        loader = abm.AbmLoader()
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        shape_file = tmp_path / "shapes.gpkg"
+        cxr_file = tmp_path / "cxr.csv"
+        pop_file = tmp_path / "pop.csv"
+        exp_file = tmp_path / "exp.csv"
+
+        for f in [shape_file, cxr_file, pop_file, exp_file]:
+            f.touch()
+
+        loader.emit_script(
+            mode="ABM",
+            model="MEASLES",
+            shape_filename=shape_file,
+            cxr_filename=cxr_file,
+            pop_filename=pop_file,
+            exp_filename=exp_file,
+            output_dir=output_dir,
+        )
+
+        assert not (output_dir / "plot.py").exists(), (
+            "generic plot.py should not be created for MEASLES"
+        )
+        assert not (output_dir / "seir.py").exists(), "seir.py should not be created for MEASLES"
+
 
 class TestMpmLoader:
     """Test suite for MPM loader."""

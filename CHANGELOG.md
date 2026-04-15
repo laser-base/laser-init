@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Measles ABM template support across the project
+  - Added a measles-specific ABM template and plotting helpers using `laser-measles`
+  - Added `MEASLES` CLI and loader support for emitting `measles.py`, `measles_plot.py`, and a measles-specific `config.yaml`
+  - Added tests covering measles model module imports and ABM loader emission for the `MEASLES` model
+- Declared new runtime dependencies for the measles workflow in `pyproject.toml`
+  - Added `laser-measles>=0.10.0`
+  - Added `polars>=1.0.0`
 - Comprehensive documentation overhaul
   - Updated pyproject.toml with proper package description
   - Completely rewrote README.md with installation instructions, prerequisites, troubleshooting, advanced usage, and comprehensive examples
