@@ -79,13 +79,41 @@ logs-geoboundaries:
 test-geoboundaries:
 	$(PYTHON) geoboundaries/test_client.py --url http://localhost:8102
 
+# ── unocha-service (port 8103) ────────────────────────────────────────────────
+
+build-unocha:
+	docker build -t laser-unocha-service unocha/
+
+run-unocha: build-unocha
+	@mkdir -p $(CACHE_ROOT)/unocha
+	docker run -d \
+		--name laser-unocha-service \
+		-p 8103:8000 \
+		-v $(CACHE_ROOT)/unocha:/cache \
+		laser-unocha-service
+	@echo "unocha-service running on http://localhost:8103"
+	@echo "Note: first run downloads ~1-2 GB global GDB — use 'make logs-unocha' to monitor."
+
+stop-unocha:
+	docker stop laser-unocha-service 2>/dev/null || true
+	docker rm   laser-unocha-service 2>/dev/null || true
+
+restart-unocha: stop-unocha run-unocha
+
+logs-unocha:
+	docker logs -f laser-unocha-service
+
+test-unocha:
+	$(PYTHON) unocha/test_client.py --url http://localhost:8103 --wait
+
 # ── all ────────────────────────────────────────────────────────────────────────
 
-run-all:   run-unwpp run-gadm run-geoboundaries
-stop-all:  stop-unwpp stop-gadm stop-geoboundaries
+run-all:   run-unwpp run-gadm run-geoboundaries run-unocha
+stop-all:  stop-unwpp stop-gadm stop-geoboundaries stop-unocha
 
 .PHONY: build-unwpp run-unwpp stop-unwpp restart-unwpp logs-unwpp test-unwpp \
         build-gadm run-gadm stop-gadm restart-gadm logs-gadm test-gadm \
         build-geoboundaries run-geoboundaries stop-geoboundaries \
         restart-geoboundaries logs-geoboundaries test-geoboundaries \
+        build-unocha run-unocha stop-unocha restart-unocha logs-unocha test-unocha \
         run-all stop-all
