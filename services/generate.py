@@ -180,20 +180,8 @@ def _emit_scripts(
     model: str,
 ) -> None:
     """Call the laser-init Load phase to emit model scripts and validation plots."""
-    import sys as _sys
-    try:
-        from laser.init.loaders.abm import AbmLoader
-        from laser.init.cli import write_plots
-    except ImportError:
-        # generate.py lives in services/ inside the laser-init repo; try ../src
-        _src = Path(__file__).resolve().parent.parent / "src"
-        if not _src.exists():
-            raise RuntimeError(
-                "laser.init not found. Install it: pip install -e /path/to/laser-init"
-            )
-        _sys.path.insert(0, str(_src))
-        from laser.init.loaders.abm import AbmLoader
-        from laser.init.cli import write_plots
+    from laser.init.loaders.abm import AbmLoader
+    from laser.init.cli import write_plots
 
     print("\nEmitting model scripts via laser-init Load phase ...")
     AbmLoader().emit_script(
