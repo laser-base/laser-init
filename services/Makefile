@@ -53,11 +53,39 @@ logs-gadm:
 test-gadm:
 	$(PYTHON) gadm/test_client.py --url http://localhost:8101
 
+# ── geoboundaries-service (port 8102) ─────────────────────────────────────────
+
+build-geoboundaries:
+	docker build -t laser-geoboundaries-service geoboundaries/
+
+run-geoboundaries: build-geoboundaries
+	@mkdir -p $(CACHE_ROOT)/geoboundaries
+	docker run -d \
+		--name laser-geoboundaries-service \
+		-p 8102:8000 \
+		-v $(CACHE_ROOT)/geoboundaries:/cache \
+		laser-geoboundaries-service
+	@echo "geoboundaries-service running on http://localhost:8102"
+
+stop-geoboundaries:
+	docker stop laser-geoboundaries-service 2>/dev/null || true
+	docker rm   laser-geoboundaries-service 2>/dev/null || true
+
+restart-geoboundaries: stop-geoboundaries run-geoboundaries
+
+logs-geoboundaries:
+	docker logs -f laser-geoboundaries-service
+
+test-geoboundaries:
+	$(PYTHON) geoboundaries/test_client.py --url http://localhost:8102
+
 # ── all ────────────────────────────────────────────────────────────────────────
 
-run-all:   run-unwpp run-gadm
-stop-all:  stop-unwpp stop-gadm
+run-all:   run-unwpp run-gadm run-geoboundaries
+stop-all:  stop-unwpp stop-gadm stop-geoboundaries
 
 .PHONY: build-unwpp run-unwpp stop-unwpp restart-unwpp logs-unwpp test-unwpp \
         build-gadm run-gadm stop-gadm restart-gadm logs-gadm test-gadm \
+        build-geoboundaries run-geoboundaries stop-geoboundaries \
+        restart-geoboundaries logs-geoboundaries test-geoboundaries \
         run-all stop-all
