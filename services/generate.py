@@ -139,32 +139,77 @@ def write_life_exp(demo: dict, output_dir: Path) -> Path:
 
 
 def write_config(output_dir: Path, iso: str, level: int) -> Path:
+    """Write a standalone config.yaml (used when --emit-scripts is not set)."""
     dest = output_dir / "config.yaml"
+    # Key names match what AbmLoader and the model scripts expect (underscores).
     cfg = {
-        "data-dir": str(output_dir.resolve()),
+        "data_dir": str(output_dir.resolve()),
         "datafiles": {
-            "shape-data": f"{iso}_admin{level}.gpkg",
-            "cxr-data":   "cxr.csv",
-            "pop-data":   "age_dist.csv",
-            "exp-data":   "life_exp.csv",
+            "shape_data": f"{iso}_admin{level}.gpkg",
+            "cxr_data":   "cxr.csv",
+            "pop_data":   "age_dist.csv",
+            "exp_data":   "life_exp.csv",
         },
         "simulation": {
-            "nyears":                    10,
-            "r0":                        2.5,
-            "exposed-duration-shape":    4.5,
-            "exposed-duration-scale":    1.0,
-            "infectious-duration-mean":  7.0,
-            "naive-population":          True,
-            "gravity_k":                 500,
-            "gravity_a":                 1,
-            "gravity_b":                 1,
-            "gravity_c":                 2,
+            "nyears":                   10,
+            "r0":                       2.5,
+            "exposed_duration_shape":   4.5,
+            "exposed_duration_scale":   1.0,
+            "infectious_duration_mean": 7.0,
+            "naive_population":         True,
+            "gravity_k":                500,
+            "gravity_a":                1,
+            "gravity_b":                1,
+            "gravity_c":                2,
         },
     }
     with dest.open("w") as f:
         yaml.dump(cfg, f, default_flow_style=False, sort_keys=False)
     print(f"  → {dest.name}")
     return dest
+
+
+def _emit_scripts(
+    output_dir: Path,
+    iso: str,
+    level: int,
+    gpkg: Path,
+    cxr: Path,
+    age_dist: Path,
+    life_exp: Path,
+    model: str,
+) -> None:
+    """Call the laser-init Load phase to emit model scripts and validation plots."""
+    import sys as _sys
+    try:
+        from laser.init.loaders.abm import AbmLoader
+        from laser.init.cli import write_plots
+    except ImportError:
+        # generate.py lives in services/ inside the laser-init repo; try ../src
+        _src = Path(__file__).resolve().parent.parent / "src"
+        if not _src.exists():
+            raise RuntimeError(
+                "laser.init not found. Install it: pip install -e /path/to/laser-init"
+            )
+        _sys.path.insert(0, str(_src))
+        from laser.init.loaders.abm import AbmLoader
+        from laser.init.cli import write_plots
+
+    print("\nEmitting model scripts via laser-init Load phase ...")
+    AbmLoader().emit_script(
+        mode="ABM",
+        model=model,
+        shape_filename=gpkg,
+        cxr_filename=cxr,
+        pop_filename=age_dist,
+        exp_filename=life_exp,
+        output_dir=output_dir,
+    )
+    print(f"  → config.yaml, {model.lower()}.py, plot.py")
+
+    print("Writing validation plots ...")
+    write_plots(gpkg, cxr, age_dist, life_exp, output_dir)
+    print("  → choropleth.png, cbr_cdr.png, age_distribution.png, life_expectancy.png, report.pdf")
 
 
 def write_provenance(
@@ -213,6 +258,11 @@ def main() -> None:
     parser.add_argument("--unwpp-url",    default="http://127.0.0.1:8100")
     parser.add_argument("--raster-year",  type=int, default=None,
                         help="WorldPop raster year (default: start_year clamped to 2020)")
+    parser.add_argument("--model", choices=["SI", "SIR", "SEIR"], default="SEIR",
+                        help="Model type for emitted script (default: SEIR)")
+    parser.add_argument("--emit-scripts", action="store_true",
+                        help="Also emit model scripts and validation plots via laser-init "
+                             "Load phase (requires laser-init to be installed)")
     args = parser.parse_args()
 
     iso         = args.country.upper()
@@ -247,20 +297,25 @@ def main() -> None:
         sys.exit(1)
 
     print()
-    gdf = build_gdf(fc, pop)
-    write_gpkg(gdf, output_dir, iso, level)
-    write_cxr(demo, output_dir)
-    write_age_dist(demo, output_dir)
-    write_life_exp(demo, output_dir)
-    write_config(output_dir, iso, level)
+    gdf      = build_gdf(fc, pop)
+    gpkg     = write_gpkg(gdf, output_dir, iso, level)
+    cxr      = write_cxr(demo, output_dir)
+    age_dist = write_age_dist(demo, output_dir)
+    life_exp = write_life_exp(demo, output_dir)
     write_provenance(output_dir, iso, level,
                      shapes_url, wp_url, unwpp_url, shape_src, raster_year)
 
+    if args.emit_scripts:
+        _emit_scripts(output_dir, iso, level, gpkg, cxr, age_dist, life_exp, args.model)
+    else:
+        write_config(output_dir, iso, level)
+        print(f"\nDone — {output_dir}/")
+        print(f"Run with --emit-scripts to also generate {args.model.lower()}.py, "
+              f"plot.py, config.yaml, and validation plots.")
+        return
+
     print(f"\nDone — {output_dir}/")
-    print("Next: run `laser-init {iso} {level} {start} {end} --shape-source {src}` "
-          "on the same output dir to add model scripts and validation plots,\n"
-          "      or use the laser-init Load phase directly once it accepts pre-built data.".format(
-              iso=iso, level=level, start=start_year, end=end_year, src=shape_src))
+    print(f"To run the model:\n  cd {output_dir} && python {args.model.lower()}.py")
 
 
 if __name__ == "__main__":
