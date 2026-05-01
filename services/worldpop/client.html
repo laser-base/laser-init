@@ -228,7 +228,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
     }
 
     // ── Step 2: aggregate population via worldpop ─────────────────────────────
-    status.textContent = `${fc.features.length} features loaded. Aggregating population…`;
+    status.textContent = `${fc.features.length} features loaded. Requesting population (first run downloads raster — may take minutes)…`;
     const wpResp = await fetch(`${wpUrl}/aggregate/${iso}?year=${year}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
