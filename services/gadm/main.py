@@ -17,6 +17,7 @@ from pathlib import Path
 import geopandas as gpd
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -84,6 +85,7 @@ def _read(iso: str, level: int) -> gpd.GeoDataFrame:
 
 
 app = FastAPI(title="gadm-service")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET"], allow_headers=["*"])
 
 
 @app.get("/health")

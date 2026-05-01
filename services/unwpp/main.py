@@ -18,6 +18,7 @@ import httpx
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -78,6 +79,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="unwpp-service", lifespan=lifespan)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET"], allow_headers=["*"])
 
 
 @app.get("/health")
