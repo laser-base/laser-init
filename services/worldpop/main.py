@@ -6,14 +6,16 @@ POST /prewarm/{iso}?year=2020   → {"status": "ok", "iso": "...", "year": ...}
 POST /aggregate/{iso}?year=2020 → {nodeid: population, ...}
      body: GeoJSON FeatureCollection; each feature must have "nodeid" in properties
 
-Rasters are downloaded on demand and cached on disk. The WorldPop constrained
-UN-adjusted dataset is used (years 2000–2020).
+Rasters are downloaded on demand and cached on disk. The WorldPop UN-adjusted
+dataset (Global_2000_2020) is used. Per-(iso,year) locks prevent duplicate
+concurrent downloads.
 """
 
 import logging
 import os
 import shutil
 import tempfile
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -33,6 +35,10 @@ logger = logging.getLogger(__name__)
 CACHE_DIR = Path(os.environ.get("CACHE_DIR", Path.home() / ".laser" / "cache" / "worldpop"))
 _YEAR_DEFAULT = 2020
 
+# Per-(iso, year) lock prevents duplicate concurrent downloads of the same raster.
+_lock_registry_mu: threading.Lock = threading.Lock()
+_download_locks: dict[tuple[str, int], threading.Lock] = {}
+
 
 def _raster_path(iso: str, year: int) -> Path:
     return CACHE_DIR / f"{iso.lower()}_ppp_{year}_UNadj.tif"
@@ -51,27 +57,41 @@ def _download_raster(iso: str, year: int) -> Path:
     if dest.exists():
         logger.info("Cache hit: %s", dest)
         return dest
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    url = _worldpop_url(iso, year)
-    logger.info("Downloading WorldPop raster for %s year=%d ...", iso, year)
-    tmp = Path(tempfile.mktemp(dir=CACHE_DIR, suffix=".tmp"))
-    try:
-        with httpx.stream("GET", url, follow_redirects=True, timeout=600) as r:
-            if r.status_code == 404:
-                raise HTTPException(404, f"No WorldPop data for ISO {iso!r} year={year}")
-            r.raise_for_status()
-            with tmp.open("wb") as f:
-                downloaded = 0
-                for chunk in r.iter_bytes(chunk_size=1_048_576):
-                    f.write(chunk)
-                    downloaded += len(chunk)
-                    if downloaded % (50 * 1_048_576) == 0:
-                        logger.info("  ... %.0f MB downloaded", downloaded / 1e6)
-        shutil.move(str(tmp), str(dest))
-    except Exception:
-        tmp.unlink(missing_ok=True)
-        raise
-    logger.info("Saved %s (%.0f MB)", dest, dest.stat().st_size / 1e6)
+
+    # Acquire a per-(iso, year) lock so concurrent requests wait rather than
+    # each downloading the same raster simultaneously.
+    key = (iso, year)
+    with _lock_registry_mu:
+        if key not in _download_locks:
+            _download_locks[key] = threading.Lock()
+    lock = _download_locks[key]
+
+    with lock:
+        if dest.exists():  # another thread finished while we waited
+            logger.info("Cache hit (post-lock): %s", dest)
+            return dest
+
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        url = _worldpop_url(iso, year)
+        logger.info("Downloading WorldPop raster for %s year=%d ...", iso, year)
+        tmp = Path(tempfile.mktemp(dir=CACHE_DIR, suffix=".tmp"))
+        try:
+            with httpx.stream("GET", url, follow_redirects=True, timeout=600) as r:
+                if r.status_code == 404:
+                    raise HTTPException(404, f"No WorldPop data for ISO {iso!r} year={year}")
+                r.raise_for_status()
+                with tmp.open("wb") as f:
+                    downloaded = 0
+                    for chunk in r.iter_bytes(chunk_size=1_048_576):
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        if downloaded % (50 * 1_048_576) == 0:
+                            logger.info("  ... %.0f MB downloaded", downloaded / 1e6)
+            shutil.move(str(tmp), str(dest))
+        except Exception:
+            tmp.unlink(missing_ok=True)
+            raise
+        logger.info("Saved %s (%.0f MB)", dest, dest.stat().st_size / 1e6)
     return dest
 
 

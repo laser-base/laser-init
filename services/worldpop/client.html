@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>WorldPop Population Choropleth</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
+
+    #controls {
+      padding: 8px 12px;
+      background: #f0f4f8;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    #controls label {
+      display: flex;
+      flex-direction: column;
+      font-size: 11px;
+      font-weight: 600;
+      color: #444;
+      gap: 3px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    #controls input[type=text] { padding: 4px 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; width: 200px; }
+    #controls input.short  { width: 70px; }
+    #controls select       { padding: 4px 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; }
+    #load-btn {
+      padding: 5px 18px;
+      background: #1d4ed8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      height: 28px;
+    }
+    #load-btn:hover    { background: #1e40af; }
+    #load-btn:disabled { background: #93c5fd; cursor: default; }
+    #status { font-size: 12px; color: #555; align-self: center; max-width: 320px; }
+
+    #map { flex: 1; }
+
+    /* Leaflet legend */
+    .wp-legend {
+      background: white;
+      padding: 8px 10px;
+      border-radius: 4px;
+      box-shadow: 0 1px 5px rgba(0,0,0,.25);
+      font-size: 11px;
+      min-width: 130px;
+    }
+    .wp-legend .title { font-weight: bold; margin-bottom: 5px; font-size: 12px; }
+    .wp-legend .bar {
+      height: 12px;
+      border-radius: 2px;
+      background: linear-gradient(to right,
+        rgb(255,255,204), rgb(254,217,118), rgb(254,178,76),
+        rgb(252,78,42),  rgb(177,0,38));
+      margin-bottom: 3px;
+    }
+    .wp-legend .labels { display: flex; justify-content: space-between; color: #555; }
+  </style>
+</head>
+<body>
+
+<div id="controls">
+  <label>Shapes source
+    <select id="source">
+      <option value="gadm"           data-port="8101">GADM</option>
+      <option value="geoboundaries"  data-port="8102">geoBoundaries</option>
+      <option value="unocha"         data-port="8103">UNOCHA</option>
+    </select>
+  </label>
+  <label>Shapes URL
+    <input type="text" id="shapes-url" value="http://localhost:8101"/>
+  </label>
+  <label>WorldPop URL
+    <input type="text" id="wp-url" value="http://localhost:8104"/>
+  </label>
+  <label>ISO (3-letter)
+    <input type="text" id="iso" class="short" value="NGA" maxlength="3"/>
+  </label>
+  <label>Admin level
+    <select id="level">
+      <option value="0">0 — Country</option>
+      <option value="1" selected>1 — Province</option>
+      <option value="2">2 — District</option>
+      <option value="3">3 — Sub-district</option>
+    </select>
+  </label>
+  <label>Year
+    <select id="year">
+      <option>2015</option><option>2016</option><option>2017</option>
+      <option>2018</option><option>2019</option>
+      <option value="2020" selected>2020</option>
+    </select>
+  </label>
+  <label>Mode
+    <select id="mode">
+      <option value="choropleth">Population choropleth</option>
+      <option value="boundaries">Boundaries only</option>
+    </select>
+  </label>
+  <button id="load-btn">Load</button>
+  <span id="status"></span>
+</div>
+
+<div id="map"></div>
+
+<script>
+const map = L.map('map').setView([10, 20], 3);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 18,
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | <a href="https://www.worldpop.org">WorldPop</a>',
+}).addTo(map);
+
+let geojsonLayer = null;
+let legendControl = null;
+
+// Show/hide year control depending on mode
+document.getElementById('mode').addEventListener('change', function () {
+  document.getElementById('year').closest('label').style.display =
+    this.value === 'choropleth' ? '' : 'none';
+});
+
+// Auto-update shapes URL port when source changes
+document.getElementById('source').addEventListener('change', function () {
+  const port = this.options[this.selectedIndex].dataset.port;
+  const current = document.getElementById('shapes-url').value;
+  document.getElementById('shapes-url').value = current.replace(/:\d+/, ':' + port);
+});
+
+// Keep ISO uppercase while typing
+document.getElementById('iso').addEventListener('input', function () {
+  this.value = this.value.toUpperCase();
+});
+
+function fmtPop(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(0) + 'k';
+  return Math.round(n).toLocaleString();
+}
+
+// YlOrRd colour scale (log-normalised)
+const COLOR_STOPS = [
+  [255, 255, 204],
+  [254, 217, 118],
+  [254, 178,  76],
+  [253, 141,  60],
+  [252,  78,  42],
+  [227,  26,  28],
+  [177,   0,  38],
+];
+
+function choroplethColor(pop, logMin, logRange) {
+  if (logRange === 0) return `rgb(${COLOR_STOPS[3].join(',')})`;
+  const t = Math.min((Math.log(pop + 1) - logMin) / logRange, 0.9999);
+  const idx = t * (COLOR_STOPS.length - 1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  const f = idx - lo;
+  const r = Math.round(COLOR_STOPS[lo][0] + f * (COLOR_STOPS[hi][0] - COLOR_STOPS[lo][0]));
+  const g = Math.round(COLOR_STOPS[lo][1] + f * (COLOR_STOPS[hi][1] - COLOR_STOPS[lo][1]));
+  const b = Math.round(COLOR_STOPS[lo][2] + f * (COLOR_STOPS[hi][2] - COLOR_STOPS[lo][2]));
+  return `rgb(${r},${g},${b})`;
+}
+
+function addLegend(minPop, maxPop) {
+  if (legendControl) map.removeControl(legendControl);
+  legendControl = L.control({ position: 'bottomright' });
+  legendControl.onAdd = () => {
+    const div = L.DomUtil.create('div', 'wp-legend');
+    div.innerHTML = `
+      <div class="title">Population (${document.getElementById('year').value})</div>
+      <div class="bar"></div>
+      <div class="labels"><span>${fmtPop(minPop)}</span><span>${fmtPop(maxPop)}</span></div>
+    `;
+    return div;
+  };
+  legendControl.addTo(map);
+}
+
+document.getElementById('load-btn').addEventListener('click', async () => {
+  const shapesUrl = document.getElementById('shapes-url').value.trim().replace(/\/$/, '');
+  const wpUrl     = document.getElementById('wp-url').value.trim().replace(/\/$/, '');
+  const iso       = document.getElementById('iso').value.trim().toUpperCase();
+  const level     = document.getElementById('level').value;
+  const year      = document.getElementById('year').value;
+  const mode      = document.getElementById('mode').value;
+  const btn       = document.getElementById('load-btn');
+  const status    = document.getElementById('status');
+
+  btn.disabled = true;
+  status.textContent = 'Fetching shapes…';
+
+  try {
+    // ── Step 1: fetch shapes ──────────────────────────────────────────────────
+    const shapesResp = await fetch(`${shapesUrl}/boundaries/${iso}/${level}`);
+    if (!shapesResp.ok) {
+      const msg = await shapesResp.text().catch(() => '');
+      throw new Error(`Shapes service returned ${shapesResp.status}${msg ? ': ' + msg : ''}`);
+    }
+    const fc = await shapesResp.json();
+
+    if (mode === 'boundaries') {
+      // ── Boundaries-only mode: render shapes with uniform fill ───────────────
+      if (geojsonLayer) map.removeLayer(geojsonLayer);
+      if (legendControl) { map.removeControl(legendControl); legendControl = null; }
+      geojsonLayer = L.geoJSON(fc, {
+        style: { fillColor: '#4a90d9', fillOpacity: 0.35, color: '#2563eb', weight: 1 },
+        onEachFeature: (feature, layer) => {
+          const name = feature.properties.name || feature.properties.NAME || '';
+          layer.bindTooltip(`<strong>${name}</strong>`, { sticky: true });
+          layer.on('mouseover', function () { this.setStyle({ weight: 2, color: '#111' }); });
+          layer.on('mouseout',  function () { geojsonLayer.resetStyle(this); });
+        },
+      }).addTo(map);
+      map.fitBounds(geojsonLayer.getBounds());
+      status.textContent = `${fc.features.length} regions loaded`;
+      return;
+    }
+
+    // ── Step 2: aggregate population via worldpop ─────────────────────────────
+    status.textContent = `${fc.features.length} features loaded. Aggregating population…`;
+    const wpResp = await fetch(`${wpUrl}/aggregate/${iso}?year=${year}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fc),
+    });
+    if (!wpResp.ok) {
+      const msg = await wpResp.text().catch(() => '');
+      throw new Error(`WorldPop service returned ${wpResp.status}${msg ? ': ' + msg : ''}`);
+    }
+    const popByNode = await wpResp.json();  // {"0": 123456, "1": 78900, ...}
+
+    // ── Step 3: attach population, compute range ──────────────────────────────
+    let minPop = Infinity, maxPop = -Infinity, totalPop = 0;
+    fc.features.forEach(f => {
+      const pop = popByNode[String(f.properties.nodeid)] ?? 0;
+      f.properties._population = pop;
+      if (pop > maxPop) maxPop = pop;
+      if (pop < minPop) minPop = pop;
+      totalPop += pop;
+    });
+    const logMin   = Math.log(minPop + 1);
+    const logRange = Math.log(maxPop + 1) - logMin;
+
+    // ── Step 4: render choropleth ─────────────────────────────────────────────
+    if (geojsonLayer) map.removeLayer(geojsonLayer);
+    geojsonLayer = L.geoJSON(fc, {
+      style: feature => ({
+        fillColor:   choroplethColor(feature.properties._population, logMin, logRange),
+        fillOpacity: 0.78,
+        color:       '#666',
+        weight:      0.7,
+      }),
+      onEachFeature: (feature, layer) => {
+        const name = feature.properties.name || feature.properties.NAME || '';
+        const pop  = feature.properties._population;
+        layer.bindTooltip(
+          `<strong>${name}</strong><br>Population: ${Math.round(pop).toLocaleString()}`,
+          { sticky: true }
+        );
+        layer.on('mouseover', function () { this.setStyle({ weight: 2, color: '#222' }); });
+        layer.on('mouseout',  function () { geojsonLayer.resetStyle(this); });
+      },
+    }).addTo(map);
+
+    map.fitBounds(geojsonLayer.getBounds());
+    addLegend(minPop, maxPop);
+    status.textContent =
+      `${fc.features.length} regions — total ${fmtPop(totalPop)} people (WorldPop ${year})`;
+
+  } catch (err) {
+    status.textContent = 'Error: ' + err.message;
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
