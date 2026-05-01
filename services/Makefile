@@ -106,14 +106,42 @@ logs-unocha:
 test-unocha:
 	$(PYTHON) unocha/test_client.py --url http://localhost:8103 --wait
 
+# ── worldpop-service (port 8104) ──────────────────────────────────────────────
+
+build-worldpop:
+	docker build -t laser-worldpop-service worldpop/
+
+run-worldpop: build-worldpop
+	@mkdir -p $(CACHE_ROOT)/worldpop
+	docker run -d \
+		--name laser-worldpop-service \
+		-p 8104:8000 \
+		-v $(CACHE_ROOT)/worldpop:/cache \
+		laser-worldpop-service
+	@echo "worldpop-service running on http://localhost:8104"
+	@echo "Note: rasters are downloaded on demand via POST /prewarm/{iso} or POST /aggregate/{iso}."
+
+stop-worldpop:
+	docker stop laser-worldpop-service 2>/dev/null || true
+	docker rm   laser-worldpop-service 2>/dev/null || true
+
+restart-worldpop: stop-worldpop run-worldpop
+
+logs-worldpop:
+	docker logs -f laser-worldpop-service
+
+test-worldpop:
+	$(PYTHON) worldpop/test_client.py --url http://localhost:8104
+
 # ── all ────────────────────────────────────────────────────────────────────────
 
-run-all:   run-unwpp run-gadm run-geoboundaries run-unocha
-stop-all:  stop-unwpp stop-gadm stop-geoboundaries stop-unocha
+run-all:   run-unwpp run-gadm run-geoboundaries run-unocha run-worldpop
+stop-all:  stop-unwpp stop-gadm stop-geoboundaries stop-unocha stop-worldpop
 
 .PHONY: build-unwpp run-unwpp stop-unwpp restart-unwpp logs-unwpp test-unwpp \
         build-gadm run-gadm stop-gadm restart-gadm logs-gadm test-gadm \
         build-geoboundaries run-geoboundaries stop-geoboundaries \
         restart-geoboundaries logs-geoboundaries test-geoboundaries \
         build-unocha run-unocha stop-unocha restart-unocha logs-unocha test-unocha \
+        build-worldpop run-worldpop stop-worldpop restart-worldpop logs-worldpop test-worldpop \
         run-all stop-all
