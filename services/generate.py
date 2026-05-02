@@ -28,6 +28,7 @@ Default service URLs (override with --*-url flags):
 import argparse
 import json
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -71,7 +72,20 @@ def fetch_shapes(shapes_url: str, iso: str, level: int) -> dict:
 def fetch_population(wp_url: str, iso: str, year: int, fc: dict) -> dict:
     url = f"{wp_url}/aggregate/{iso}?year={year}"
     print(f"  worldpop← {url}  (first run downloads raster — may take minutes)")
-    pop = _post(url, fc)
+    # The Azure LB has a 4-min idle timeout; a slow raster download causes a
+    # connection reset mid-request. Retry: the download continues server-side
+    # and subsequent calls hit the cache quickly.
+    for attempt in range(1, 11):
+        try:
+            pop = _post(url, fc)
+            break
+        except (httpx.RemoteProtocolError, httpx.ReadError, httpx.ConnectError) as exc:
+            if attempt == 10:
+                raise
+            wait = 60
+            print(f"  worldpop  connection reset (raster download in progress) "
+                  f"— retry {attempt}/10 in {wait}s ...")
+            time.sleep(wait)
     total = sum(pop.values())
     print(f"           {len(pop)} features, total pop {total:,.0f}")
     return pop
