@@ -1,0 +1,438 @@
+# geodata-services.yaml — PVCs + Deployments + LoadBalancer Services
+#
+# Deploys all 5 geodata microservices into the laser-ai namespace.
+# Each service gets its own LoadBalancer IP (matching the jenner-mcp pattern).
+# Each service mounts a PVC at /cache for persistent raster/shapefile storage.
+#
+# Deploy:
+#   kubectl apply -f AKS/geodata-services.yaml --kubeconfig AKS/kube.conf
+#
+# Push images first:
+#   make push-all-geodata TAG=v0.5.1a    (from services/ directory)
+
+# ── PersistentVolumeClaims ─────────────────────────────────────────────────────
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laser-unwpp-cache
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laser-gadm-cache
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laser-geoboundaries-cache
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laser-unocha-cache
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laser-worldpop-cache
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 100Gi
+
+# ── unwpp-service (UN World Population Prospects) ─────────────────────────────
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laser-unwpp-svc
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: laser-unwpp-svc
+  template:
+    metadata:
+      labels:
+        app: laser-unwpp-svc
+        app.kubernetes.io/part-of: laser-geodata
+    spec:
+      imagePullSecrets:
+        - name: artifactory-login
+      containers:
+        - name: laser-unwpp-svc
+          image: idm-docker-staging.packages.idmod.org/laser-unwpp-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: CACHE_DIR
+              value: /cache
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: laser-unwpp-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laser-unwpp-svc
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+  selector:
+    app: laser-unwpp-svc
+
+# ── gadm-service ──────────────────────────────────────────────────────────────
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laser-gadm-svc
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: laser-gadm-svc
+  template:
+    metadata:
+      labels:
+        app: laser-gadm-svc
+        app.kubernetes.io/part-of: laser-geodata
+    spec:
+      imagePullSecrets:
+        - name: artifactory-login
+      containers:
+        - name: laser-gadm-svc
+          image: idm-docker-staging.packages.idmod.org/laser-gadm-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: CACHE_DIR
+              value: /cache
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: laser-gadm-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laser-gadm-svc
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+  selector:
+    app: laser-gadm-svc
+
+# ── geoboundaries-service ─────────────────────────────────────────────────────
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laser-geoboundaries-svc
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: laser-geoboundaries-svc
+  template:
+    metadata:
+      labels:
+        app: laser-geoboundaries-svc
+        app.kubernetes.io/part-of: laser-geodata
+    spec:
+      imagePullSecrets:
+        - name: artifactory-login
+      containers:
+        - name: laser-geoboundaries-svc
+          image: idm-docker-staging.packages.idmod.org/laser-geoboundaries-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: CACHE_DIR
+              value: /cache
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: laser-geoboundaries-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laser-geoboundaries-svc
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+  selector:
+    app: laser-geoboundaries-svc
+
+# ── unocha-service ────────────────────────────────────────────────────────────
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laser-unocha-svc
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: laser-unocha-svc
+  template:
+    metadata:
+      labels:
+        app: laser-unocha-svc
+        app.kubernetes.io/part-of: laser-geodata
+    spec:
+      imagePullSecrets:
+        - name: artifactory-login
+      containers:
+        - name: laser-unocha-svc
+          image: idm-docker-staging.packages.idmod.org/laser-unocha-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: CACHE_DIR
+              value: /cache
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "3Gi"
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: laser-unocha-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laser-unocha-svc
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+  selector:
+    app: laser-unocha-svc
+
+# ── worldpop-service ──────────────────────────────────────────────────────────
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laser-worldpop-svc
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: laser-worldpop-svc
+  template:
+    metadata:
+      labels:
+        app: laser-worldpop-svc
+        app.kubernetes.io/part-of: laser-geodata
+    spec:
+      imagePullSecrets:
+        - name: artifactory-login
+      containers:
+        - name: laser-worldpop-svc
+          image: idm-docker-staging.packages.idmod.org/laser-worldpop-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: CACHE_DIR
+              value: /cache
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2Gi"
+            limits:
+              cpu: "4"
+              memory: "4Gi"
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: laser-worldpop-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laser-worldpop-svc
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+  selector:
+    app: laser-worldpop-svc

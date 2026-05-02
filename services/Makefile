@@ -133,10 +133,76 @@ logs-worldpop:
 test-worldpop:
 	$(PYTHON) worldpop/test_client.py --url http://localhost:8104
 
-# ── all ────────────────────────────────────────────────────────────────────────
+# ── all (local Docker) ────────────────────────────────────────────────────────
 
 run-all:   run-unwpp run-gadm run-geoboundaries run-unocha run-worldpop
 stop-all:  stop-unwpp stop-gadm stop-geoboundaries stop-unocha stop-worldpop
+
+# ── AKS: build + push to registry ────────────────────────────────────────────
+# Usage: make push-all-geodata TAG=v0.5.1a
+#        make push-worldpop TAG=v0.5.2a
+
+REGISTRY   ?= idm-docker-staging.packages.idmod.org
+TAG        ?= latest
+KUBECONFIG ?= AKS/kube.conf
+KUBECTL     = kubectl --kubeconfig $(KUBECONFIG)
+NAMESPACE   = laser-ai
+
+push-unwpp:
+	docker build -t $(REGISTRY)/laser-unwpp-service:$(TAG) unwpp/
+	docker push $(REGISTRY)/laser-unwpp-service:$(TAG)
+
+push-gadm:
+	docker build -t $(REGISTRY)/laser-gadm-service:$(TAG) gadm/
+	docker push $(REGISTRY)/laser-gadm-service:$(TAG)
+
+push-geoboundaries:
+	docker build -t $(REGISTRY)/laser-geoboundaries-service:$(TAG) geoboundaries/
+	docker push $(REGISTRY)/laser-geoboundaries-service:$(TAG)
+
+push-unocha:
+	docker build -t $(REGISTRY)/laser-unocha-service:$(TAG) unocha/
+	docker push $(REGISTRY)/laser-unocha-service:$(TAG)
+
+push-worldpop:
+	docker build -t $(REGISTRY)/laser-worldpop-service:$(TAG) worldpop/
+	docker push $(REGISTRY)/laser-worldpop-service:$(TAG)
+
+push-all-geodata: push-unwpp push-gadm push-geoboundaries push-unocha push-worldpop
+
+# ── AKS: deploy / status / manage ────────────────────────────────────────────
+
+k8s-deploy:
+	$(KUBECTL) apply -f AKS/geodata-services.yaml -n $(NAMESPACE)
+
+k8s-status:
+	$(KUBECTL) get deployment,svc,pvc -n $(NAMESPACE) \
+	  -l app.kubernetes.io/part-of=laser-geodata
+
+k8s-ips:
+	$(KUBECTL) get svc -n $(NAMESPACE) \
+	  -l app.kubernetes.io/part-of=laser-geodata \
+	  -o custom-columns='NAME:.metadata.name,IP:.status.loadBalancer.ingress[0].ip'
+
+k8s-prewarm:
+	$(KUBECTL) apply -f AKS/worldpop-prewarm-job.yaml -n $(NAMESPACE)
+
+k8s-logs-%:
+	$(KUBECTL) logs -f deployment/laser-$*-svc -n $(NAMESPACE)
+
+# Tear down Deployments + Services but preserve PVCs (cached data survives).
+k8s-delete:
+	$(KUBECTL) delete deployment,service \
+	  laser-unwpp-svc laser-gadm-svc laser-geoboundaries-svc \
+	  laser-unocha-svc laser-worldpop-svc \
+	  -n $(NAMESPACE) --ignore-not-found
+
+# Also wipe PVCs (destroys all cached rasters/shapefiles — use with care).
+k8s-delete-all: k8s-delete
+	$(KUBECTL) delete pvc \
+	  laser-unwpp-cache laser-gadm-cache laser-geoboundaries-cache \
+	  laser-unocha-cache laser-worldpop-cache \
+	  -n $(NAMESPACE) --ignore-not-found
 
 .PHONY: build-unwpp run-unwpp stop-unwpp restart-unwpp logs-unwpp test-unwpp \
         build-gadm run-gadm stop-gadm restart-gadm logs-gadm test-gadm \
@@ -144,4 +210,6 @@ stop-all:  stop-unwpp stop-gadm stop-geoboundaries stop-unocha stop-worldpop
         restart-geoboundaries logs-geoboundaries test-geoboundaries \
         build-unocha run-unocha stop-unocha restart-unocha logs-unocha test-unocha \
         build-worldpop run-worldpop stop-worldpop restart-worldpop logs-worldpop test-worldpop \
-        run-all stop-all
+        run-all stop-all \
+        push-unwpp push-gadm push-geoboundaries push-unocha push-worldpop push-all-geodata \
+        k8s-deploy k8s-status k8s-ips k8s-prewarm k8s-delete k8s-delete-all

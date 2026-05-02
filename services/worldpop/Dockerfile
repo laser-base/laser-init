@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN apt-get update && apt-get install -y --no-install-recommends libexpat1 && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY main.py .
+COPY main.py prewarm_countries.py ./
 
 ENV CACHE_DIR=/cache
 
