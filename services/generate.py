@@ -97,7 +97,7 @@ def build_gdf(fc: dict, pop: dict) -> gpd.GeoDataFrame:
         rows.append({
             "nodeid":     nodeid,
             "name":       p.get("name", ""),
-            "population": float(pop.get(str(nodeid), 0.0)),
+            "population": round(float(pop.get(str(nodeid), 0.0))),
             "geometry":   shape(f["geometry"]),
         })
     gdf = gpd.GeoDataFrame(rows, crs="EPSG:4326")
