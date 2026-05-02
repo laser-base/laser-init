@@ -74,16 +74,16 @@
 <div id="controls">
   <label>Shapes source
     <select id="source">
-      <option value="gadm"           data-port="8101">GADM</option>
-      <option value="geoboundaries"  data-port="8102">geoBoundaries</option>
-      <option value="unocha"         data-port="8103">UNOCHA</option>
+      <option value="gadm"           data-url="http://48.200.52.126">GADM</option>
+      <option value="geoboundaries"  data-url="http://4.149.210.205">geoBoundaries</option>
+      <option value="unocha"         data-url="http://40.91.121.206">UNOCHA</option>
     </select>
   </label>
   <label>Shapes URL
-    <input type="text" id="shapes-url" value="http://localhost:8101"/>
+    <input type="text" id="shapes-url" value="http://48.200.52.126"/>
   </label>
   <label>WorldPop URL
-    <input type="text" id="wp-url" value="http://localhost:8104"/>
+    <input type="text" id="wp-url" value="http://4.155.140.158"/>
   </label>
   <label>ISO (3-letter)
     <input type="text" id="iso" class="short" value="NGA" maxlength="3"/>
@@ -131,11 +131,10 @@ document.getElementById('mode').addEventListener('change', function () {
     this.value === 'choropleth' ? '' : 'none';
 });
 
-// Auto-update shapes URL port when source changes
+// Auto-update shapes URL when source changes (each AKS service has its own IP)
 document.getElementById('source').addEventListener('change', function () {
-  const port = this.options[this.selectedIndex].dataset.port;
-  const current = document.getElementById('shapes-url').value;
-  document.getElementById('shapes-url').value = current.replace(/:\d+/, ':' + port);
+  const url = this.options[this.selectedIndex].dataset.url;
+  document.getElementById('shapes-url').value = url;
 });
 
 // Keep ISO uppercase while typing
