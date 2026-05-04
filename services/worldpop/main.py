@@ -25,6 +25,7 @@ import httpx
 import rasterio
 import rasterio.features
 import rasterio.mask
+import rasterio.windows
 from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -141,31 +142,54 @@ def aggregate(
     raster_path = _download_raster(iso.upper(), year)
 
     gdf = gpd.GeoDataFrame.from_features(features, crs="EPSG:4326")
-    nodeids = [int(f["properties"]["nodeid"]) for f in features]
 
     logger.info("Aggregating %s/%d over %d features ...", iso.upper(), year, len(gdf))
 
+    # Read the full raster into memory once (float32 — don't upcast to float64,
+    # which doubles memory usage and OOM-kills the pod on large countries like COD).
+    # Then for each polygon, extract just its bounding-box window from the
+    # in-memory array and apply a geometry mask to that small slice.
+    # One disk read, no country-sized secondary arrays.
     with rasterio.open(str(raster_path)) as src:
-        nodata = src.nodata
-        # Read the full raster once and rasterize all polygons in a single pass,
-        # then sum pixel values per node ID with numpy — far faster than calling
-        # rasterio.mask.mask once per polygon on a large country raster.
-        data = src.read(1).astype(np.float64)
-        if nodata is not None:
-            data[data == nodata] = np.nan
-
-        burned = rasterio.features.rasterize(
-            ((mapping(geom), nid) for geom, nid in zip(gdf.geometry, nodeids)),
-            out_shape=src.shape,
-            transform=src.transform,
-            fill=0,
-            dtype=np.int32,
-        )
+        nodata    = src.nodata
+        transform = src.transform
+        src_win   = rasterio.windows.Window(0, 0, src.width, src.height)
+        data      = src.read(1)  # float32
 
     result = {}
-    for nid in nodeids:
-        mask = burned == nid
-        result[nid] = float(np.nansum(data[mask]))
+    for feat, geom in zip(features, gdf.geometry):
+        nodeid = int(feat["properties"]["nodeid"])
+        try:
+            win = rasterio.windows.from_bounds(
+                *geom.bounds, transform=transform
+            ).round_lengths().round_offsets()
+            win = win.intersection(src_win)
+
+            row_off = int(win.row_off)
+            col_off = int(win.col_off)
+            height  = int(win.height)
+            width   = int(win.width)
+
+            if height <= 0 or width <= 0:
+                result[nodeid] = 0.0
+                continue
+
+            window_data      = data[row_off:row_off + height, col_off:col_off + width]
+            window_transform = rasterio.windows.transform(win, transform)
+
+            geom_mask = rasterio.features.geometry_mask(
+                [mapping(geom)],
+                out_shape=(height, width),
+                transform=window_transform,
+                invert=True,
+            )
+
+            vals = window_data[geom_mask].astype(np.float64)
+            if nodata is not None:
+                vals = vals[vals != nodata]
+            result[nodeid] = float(np.sum(vals))
+        except Exception:
+            result[nodeid] = 0.0
 
     logger.info("Aggregated %d features for %s/%d", len(result), iso.upper(), year)
     return JSONResponse(content=result)
