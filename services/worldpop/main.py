@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 CACHE_DIR = Path(os.environ.get("CACHE_DIR", Path.home() / ".laser" / "cache" / "worldpop"))
 _YEAR_DEFAULT = 2020
+_MAX_RASTER_MB = 600  # on-demand size limit; larger rasters must be pre-warmed
 
 # Per-(iso, year) lock prevents duplicate concurrent downloads of the same raster.
 _lock_registry_mu: threading.Lock = threading.Lock()
@@ -75,6 +76,30 @@ def _download_raster(iso: str, year: int) -> Path:
 
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
         url = _worldpop_url(iso, year)
+
+        # Pre-flight: check file size before committing to a long download.
+        # If Content-Length is unavailable, proceed and let the download run.
+        try:
+            head = httpx.head(url, follow_redirects=True, timeout=30)
+            if head.status_code == 404:
+                raise HTTPException(404, f"No WorldPop data for ISO {iso!r} year={year}")
+            cl = head.headers.get("content-length")
+            if cl:
+                mb = int(cl) // (1024 * 1024)
+                if mb > _MAX_RASTER_MB:
+                    raise HTTPException(
+                        422,
+                        f"{iso} raster is {mb} MB — too large for on-demand download "
+                        f"(limit {_MAX_RASTER_MB} MB). "
+                        f"Pre-warm it first: POST /prewarm/{iso}?year={year} "
+                        f"(runs in the background; may take 30+ min for large countries)."
+                    )
+                logger.info("Pre-flight: %s year=%d is %d MB — proceeding", iso, year, mb)
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.warning("Pre-flight HEAD failed (%s) — proceeding with download", exc)
+
         logger.info("Downloading WorldPop raster for %s year=%d ...", iso, year)
         tmp = Path(tempfile.mktemp(dir=CACHE_DIR, suffix=".tmp"))
         try:

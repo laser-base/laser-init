@@ -32,6 +32,8 @@ DEFAULT_COUNTRIES = [
     "IND", "BGD", "NPL", "MMR", "KHM", "LAO", "PHL", "IDN",
     # Latin America
     "BRA", "COL", "PER", "BOL", "HTI",
+    # Western Europe — small rasters, useful for evaluator ground-truthing
+    "GBR", "DEU", "FRA",
 ]
 # fmt: on
 
