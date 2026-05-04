@@ -145,51 +145,62 @@ def aggregate(
 
     logger.info("Aggregating %s/%d over %d features ...", iso.upper(), year, len(gdf))
 
-    # Read the full raster into memory once (float32 — don't upcast to float64,
-    # which doubles memory usage and OOM-kills the pod on large countries like COD).
-    # Then for each polygon, extract just its bounding-box window from the
-    # in-memory array and apply a geometry mask to that small slice.
-    # One disk read, no country-sized secondary arrays.
+    # For countries whose raster fits in memory (< 2 GB uncompressed float32),
+    # read the whole array once and slice per polygon — fast, one disk read.
+    # For very large countries (CAN ~21 GB, RUS, AUS, …) read only each
+    # polygon's bounding-box window from disk to avoid OOM.
+    _2GB = 2 * 1024 ** 3
+
+    result = {}
     with rasterio.open(str(raster_path)) as src:
         nodata    = src.nodata
         transform = src.transform
         src_win   = rasterio.windows.Window(0, 0, src.width, src.height)
-        data      = src.read(1)  # float32
+        uncompressed = src.width * src.height * 4  # float32 bytes
 
-    result = {}
-    for feat, geom in zip(features, gdf.geometry):
-        nodeid = int(feat["properties"]["nodeid"])
-        try:
-            win = rasterio.windows.from_bounds(
-                *geom.bounds, transform=transform
-            ).round_lengths().round_offsets()
-            win = win.intersection(src_win)
+        if uncompressed < _2GB:
+            data = src.read(1)  # float32 — read entire raster once
+            logger.info("In-memory mode (%.0f MB uncompressed)", uncompressed / 1e6)
+        else:
+            data = None
+            logger.info("Windowed mode (%.0f MB uncompressed — too large for in-memory)",
+                        uncompressed / 1e6)
 
-            row_off = int(win.row_off)
-            col_off = int(win.col_off)
-            height  = int(win.height)
-            width   = int(win.width)
+        for feat, geom in zip(features, gdf.geometry):
+            nodeid = int(feat["properties"]["nodeid"])
+            try:
+                win = rasterio.windows.from_bounds(
+                    *geom.bounds, transform=transform
+                ).round_lengths().round_offsets()
+                win = win.intersection(src_win)
 
-            if height <= 0 or width <= 0:
+                height = int(win.height)
+                width  = int(win.width)
+                if height <= 0 or width <= 0:
+                    result[nodeid] = 0.0
+                    continue
+
+                if data is not None:
+                    row_off = int(win.row_off)
+                    col_off = int(win.col_off)
+                    window_data = data[row_off:row_off + height, col_off:col_off + width]
+                else:
+                    window_data = src.read(1, window=win)
+
+                window_transform = rasterio.windows.transform(win, transform)
+                geom_mask = rasterio.features.geometry_mask(
+                    [mapping(geom)],
+                    out_shape=(height, width),
+                    transform=window_transform,
+                    invert=True,
+                )
+
+                vals = window_data[geom_mask].astype(np.float64)
+                if nodata is not None:
+                    vals = vals[vals != nodata]
+                result[nodeid] = float(np.sum(vals))
+            except Exception:
                 result[nodeid] = 0.0
-                continue
-
-            window_data      = data[row_off:row_off + height, col_off:col_off + width]
-            window_transform = rasterio.windows.transform(win, transform)
-
-            geom_mask = rasterio.features.geometry_mask(
-                [mapping(geom)],
-                out_shape=(height, width),
-                transform=window_transform,
-                invert=True,
-            )
-
-            vals = window_data[geom_mask].astype(np.float64)
-            if nodata is not None:
-                vals = vals[vals != nodata]
-            result[nodeid] = float(np.sum(vals))
-        except Exception:
-            result[nodeid] = 0.0
 
     logger.info("Aggregated %d features for %s/%d", len(result), iso.upper(), year)
     return JSONResponse(content=result)
