@@ -98,5 +98,7 @@ def boundaries(iso: str, level: int):
     if not 0 <= level <= 5:
         raise HTTPException(400, f"admin_level must be 0–5, got {level}")
     gdf = _read(iso.upper(), level)
-    # to_crs ensures WGS-84 (GeoJSON spec requires geographic coordinates)
+    # to_crs ensures WGS-84; set_crs first if the shapefile has no CRS metadata.
+    if gdf.crs is None:
+        gdf = gdf.set_crs("EPSG:4326")
     return JSONResponse(content=gdf.to_crs("EPSG:4326").__geo_interface__)
