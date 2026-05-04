@@ -44,7 +44,7 @@
     }
     #load-btn:hover    { background: #1e40af; }
     #load-btn:disabled { background: #93c5fd; cursor: default; }
-    #status { font-size: 12px; color: #555; align-self: center; max-width: 320px; }
+    #status { font-size: 12px; color: #555; align-self: center; max-width: 480px; white-space: pre-wrap; }
 
     #map { flex: 1; }
 
@@ -197,19 +197,43 @@ document.getElementById('load-btn').addEventListener('click', async () => {
   const status    = document.getElementById('status');
 
   btn.disabled = true;
-  status.textContent = 'Fetching shapes…';
+  setStatus('Fetching shapes…');
+
+  // Wrapper: fetch with a descriptive error that includes the URL, HTTP status,
+  // and up to 300 chars of the response body.
+  async function apiFetch(label, url, options = {}) {
+    let resp;
+    try {
+      resp = await fetch(url, options);
+    } catch (netErr) {
+      throw new Error(`${label} — network error (${netErr.message})\n  URL: ${url}`);
+    }
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => '');
+      const snippet = body.slice(0, 300).trim();
+      throw new Error(
+        `${label} — HTTP ${resp.status} ${resp.statusText}` +
+        (snippet ? `\n  ${snippet}` : '') +
+        `\n  URL: ${url}`
+      );
+    }
+    return resp;
+  }
+
+  function setStatus(msg, isError = false) {
+    status.style.color = isError ? '#b91c1c' : '#555';
+    status.textContent = msg;
+  }
 
   try {
     // ── Step 1: fetch shapes ──────────────────────────────────────────────────
-    const shapesResp = await fetch(`${shapesUrl}/boundaries/${iso}/${level}`);
-    if (!shapesResp.ok) {
-      const msg = await shapesResp.text().catch(() => '');
-      throw new Error(`Shapes service returned ${shapesResp.status}${msg ? ': ' + msg : ''}`);
-    }
+    const shapesEndpoint = `${shapesUrl}/boundaries/${iso}/${level}`;
+    const shapesResp = await apiFetch('Shapes', shapesEndpoint);
     const fc = await shapesResp.json();
+    setStatus(`✓ ${fc.features.length} shapes loaded.  ${mode === 'boundaries' ? '' : 'Requesting population…'}`);
 
     if (mode === 'boundaries') {
-      // ── Boundaries-only mode: render shapes with uniform fill ───────────────
+      // ── Boundaries-only mode ───────────────────────────────────────────────
       if (geojsonLayer) map.removeLayer(geojsonLayer);
       if (legendControl) { map.removeControl(legendControl); legendControl = null; }
       geojsonLayer = L.geoJSON(fc, {
@@ -222,22 +246,19 @@ document.getElementById('load-btn').addEventListener('click', async () => {
         },
       }).addTo(map);
       map.fitBounds(geojsonLayer.getBounds());
-      status.textContent = `${fc.features.length} regions loaded`;
+      setStatus(`${fc.features.length} regions loaded`);
       return;
     }
 
     // ── Step 2: aggregate population via worldpop ─────────────────────────────
-    status.textContent = `${fc.features.length} features loaded. Requesting population (first run downloads raster — may take minutes)…`;
-    const wpResp = await fetch(`${wpUrl}/aggregate/${iso}?year=${year}`, {
+    setStatus(`✓ ${fc.features.length} shapes.  Requesting WorldPop population (may take a minute if raster not cached)…`);
+    const wpEndpoint = `${wpUrl}/aggregate/${iso}?year=${year}`;
+    const wpResp = await apiFetch('WorldPop', wpEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(fc),
     });
-    if (!wpResp.ok) {
-      const msg = await wpResp.text().catch(() => '');
-      throw new Error(`WorldPop service returned ${wpResp.status}${msg ? ': ' + msg : ''}`);
-    }
-    const popByNode = await wpResp.json();  // {"0": 123456, "1": 78900, ...}
+    const popByNode = await wpResp.json();
 
     // ── Step 3: attach population, compute range ──────────────────────────────
     let minPop = Infinity, maxPop = -Infinity, totalPop = 0;
@@ -274,11 +295,11 @@ document.getElementById('load-btn').addEventListener('click', async () => {
 
     map.fitBounds(geojsonLayer.getBounds());
     addLegend(minPop, maxPop);
-    status.textContent =
-      `${fc.features.length} regions — total ${fmtPop(totalPop)} people (WorldPop ${year})`;
+    setStatus(`${fc.features.length} regions — total ${fmtPop(totalPop)} people (WorldPop ${year})`);
 
   } catch (err) {
-    status.textContent = 'Error: ' + err.message;
+    // Show the full multi-line error in the status bar, and full detail in console.
+    setStatus(err.message, true);
     console.error(err);
   } finally {
     btn.disabled = false;
