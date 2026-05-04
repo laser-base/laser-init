@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 CACHE_DIR = Path(os.environ.get("CACHE_DIR", Path.home() / ".laser" / "cache" / "worldpop"))
 _YEAR_DEFAULT = 2020
-_MAX_RASTER_MB = 600  # on-demand size limit; larger rasters must be pre-warmed
+_MAX_RASTER_MB = 2000  # on-demand size limit; larger rasters must use generate.py
 
 # Per-(iso, year) lock prevents duplicate concurrent downloads of the same raster.
 _lock_registry_mu: threading.Lock = threading.Lock()
@@ -165,6 +165,15 @@ def aggregate(
         raise HTTPException(400, "FeatureCollection has no features")
 
     raster_path = _download_raster(iso.upper(), year)
+
+    raster_mb = raster_path.stat().st_size // (1024 * 1024)
+    if raster_mb > _MAX_RASTER_MB:
+        raise HTTPException(
+            422,
+            f"{iso.upper()} raster is {raster_mb} MB — too large to aggregate in real time "
+            f"(limit {_MAX_RASTER_MB} MB; would exceed the load-balancer timeout). "
+            f"Use generate.py instead, which retries automatically."
+        )
 
     gdf = gpd.GeoDataFrame.from_features(features, crs="EPSG:4326")
 
