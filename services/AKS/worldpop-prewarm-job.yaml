@@ -30,10 +30,10 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: prewarm
-          image: idm-docker-staging.packages.idmod.org/laser-worldpop-service:latest
+          image: idm-docker-staging.packages.idmod.org/laser-worldpop-service:v0.5.1a
           imagePullPolicy: Always
           # Override the default uvicorn CMD with the prewarm script.
-          command: ["python", "prewarm_countries.py"]
+          command: ["python", "-u", "prewarm_countries.py"]
           args:
             - "--url"
             - "http://laser-worldpop-svc"

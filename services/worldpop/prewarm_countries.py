@@ -35,15 +35,29 @@ DEFAULT_COUNTRIES = [
 ]
 # fmt: on
 
+_MAX_RETRIES = 15       # up to 15 min of retries per country
+_RETRY_WAIT  = 60       # seconds between retries
+
 
 def prewarm_one(url: str, iso: str, year: int) -> tuple[str, bool, str]:
-    try:
-        r = httpx.post(f"{url}/prewarm/{iso}?year={year}", timeout=1800)
-        if r.status_code == 200:
-            return iso, True, ""
-        return iso, False, f"HTTP {r.status_code}: {r.text[:120]}"
-    except Exception as exc:
-        return iso, False, str(exc)
+    # Retry on connection reset — Azure LB 4-min idle timeout fires while a
+    # large raster is downloading server-side; the download continues and the
+    # next attempt hits the cache.
+    for attempt in range(1, _MAX_RETRIES + 1):
+        try:
+            r = httpx.post(f"{url}/prewarm/{iso}?year={year}", timeout=1800)
+            if r.status_code == 200:
+                return iso, True, ""
+            return iso, False, f"HTTP {r.status_code}: {r.text[:120]}"
+        except (httpx.RemoteProtocolError, httpx.ReadError, httpx.ConnectError) as exc:
+            if attempt == _MAX_RETRIES:
+                return iso, False, f"gave up after {attempt} retries: {exc}"
+            print(f"  [WAIT] {iso} — connection reset, retry {attempt}/{_MAX_RETRIES} in {_RETRY_WAIT}s",
+                  flush=True)
+            time.sleep(_RETRY_WAIT)
+        except Exception as exc:
+            return iso, False, str(exc)
+    return iso, False, "unreachable"
 
 
 def main() -> None:
@@ -66,7 +80,8 @@ def main() -> None:
     else:
         isos = DEFAULT_COUNTRIES
 
-    print(f"Pre-warming {len(isos)} countries at {base_url} (year={args.year}, workers={args.workers})\n")
+    print(f"Pre-warming {len(isos)} countries at {base_url} (year={args.year}, workers={args.workers})\n",
+          flush=True)
 
     t0 = time.monotonic()
     ok, failed = [], []
@@ -77,15 +92,15 @@ def main() -> None:
             iso, success, msg = fut.result()
             if success:
                 ok.append(iso)
-                print(f"  [OK]   {iso}")
+                print(f"  [OK]   {iso}", flush=True)
             else:
                 failed.append(iso)
-                print(f"  [FAIL] {iso} — {msg}")
+                print(f"  [FAIL] {iso} — {msg}", flush=True)
 
     elapsed = time.monotonic() - t0
-    print(f"\n{len(ok)}/{len(isos)} countries cached in {elapsed:.0f}s")
+    print(f"\n{len(ok)}/{len(isos)} countries cached in {elapsed:.0f}s", flush=True)
     if failed:
-        print(f"Failed: {', '.join(failed)}")
+        print(f"Failed: {', '.join(failed)}", flush=True)
         sys.exit(1)
 
 
