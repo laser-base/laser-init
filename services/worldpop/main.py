@@ -23,6 +23,7 @@ import numpy as np
 import geopandas as gpd
 import httpx
 import rasterio
+import rasterio.features
 import rasterio.mask
 from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -140,22 +141,31 @@ def aggregate(
     raster_path = _download_raster(iso.upper(), year)
 
     gdf = gpd.GeoDataFrame.from_features(features, crs="EPSG:4326")
+    nodeids = [int(f["properties"]["nodeid"]) for f in features]
 
     logger.info("Aggregating %s/%d over %d features ...", iso.upper(), year, len(gdf))
-    result = {}
+
     with rasterio.open(str(raster_path)) as src:
         nodata = src.nodata
-        for feat, geom in zip(features, gdf.geometry):
-            try:
-                out_image, _ = rasterio.mask.mask(src, [mapping(geom)], crop=True)
-                data = out_image[0].astype(np.float64)
-                if nodata is not None:
-                    data[data == nodata] = np.nan
-                total = float(np.nansum(data))
-            except Exception:
-                total = 0.0
-            nodeid = feat["properties"]["nodeid"]
-            result[int(nodeid)] = total
+        # Read the full raster once and rasterize all polygons in a single pass,
+        # then sum pixel values per node ID with numpy — far faster than calling
+        # rasterio.mask.mask once per polygon on a large country raster.
+        data = src.read(1).astype(np.float64)
+        if nodata is not None:
+            data[data == nodata] = np.nan
+
+        burned = rasterio.features.rasterize(
+            ((mapping(geom), nid) for geom, nid in zip(gdf.geometry, nodeids)),
+            out_shape=src.shape,
+            transform=src.transform,
+            fill=0,
+            dtype=np.int32,
+        )
+
+    result = {}
+    for nid in nodeids:
+        mask = burned == nid
+        result[nid] = float(np.nansum(data[mask]))
 
     logger.info("Aggregated %d features for %s/%d", len(result), iso.upper(), year)
     return JSONResponse(content=result)
