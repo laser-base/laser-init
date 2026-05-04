@@ -148,7 +148,7 @@ function fmtPop(n) {
   return Math.round(n).toLocaleString();
 }
 
-// YlOrRd colour scale (log-normalised)
+// YlOrRd colour scale (quantile-classified)
 const COLOR_STOPS = [
   [255, 255, 204],
   [254, 217, 118],
@@ -159,16 +159,30 @@ const COLOR_STOPS = [
   [177,   0,  38],
 ];
 
-function choroplethColor(pop, logMin, logRange) {
-  if (logRange === 0) return `rgb(${COLOR_STOPS[3].join(',')})`;
-  const t = Math.min((Math.log(pop + 1) - logMin) / logRange, 0.9999);
-  const idx = t * (COLOR_STOPS.length - 1);
+function interpolateColor(t) {
+  const idx = Math.min(t, 0.9999) * (COLOR_STOPS.length - 1);
   const lo = Math.floor(idx), hi = Math.ceil(idx);
   const f = idx - lo;
   const r = Math.round(COLOR_STOPS[lo][0] + f * (COLOR_STOPS[hi][0] - COLOR_STOPS[lo][0]));
   const g = Math.round(COLOR_STOPS[lo][1] + f * (COLOR_STOPS[hi][1] - COLOR_STOPS[lo][1]));
   const b = Math.round(COLOR_STOPS[lo][2] + f * (COLOR_STOPS[hi][2] - COLOR_STOPS[lo][2]));
   return `rgb(${r},${g},${b})`;
+}
+
+// Build a rank lookup from a popByNode dict.
+// Returns a function (pop) → color that maps quantile rank → colour stop,
+// guaranteeing the full yellow→red range is used regardless of the distribution.
+function buildQuantileColorFn(popByNode) {
+  const sorted = Object.values(popByNode).map(Number).sort((a, b) => a - b);
+  const n = sorted.length;
+  if (n <= 1) return () => interpolateColor(0.5);
+  // For ties, all tied values get the same rank (first occurrence).
+  const rankMap = new Map();
+  sorted.forEach((p, i) => { if (!rankMap.has(p)) rankMap.set(p, i); });
+  return (pop) => {
+    const rank = rankMap.get(pop) ?? 0;
+    return interpolateColor(rank / (n - 1));
+  };
 }
 
 function addLegend(minPop, maxPop) {
@@ -180,6 +194,7 @@ function addLegend(minPop, maxPop) {
       <div class="title">Population (${document.getElementById('year').value})</div>
       <div class="bar"></div>
       <div class="labels"><span>${fmtPop(minPop)}</span><span>${fmtPop(maxPop)}</span></div>
+      <div style="font-size:10px;color:#888;margin-top:3px">quantile classification</div>
     `;
     return div;
   };
@@ -260,7 +275,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
     });
     const popByNode = await wpResp.json();
 
-    // ── Step 3: attach population, compute range ──────────────────────────────
+    // ── Step 3: attach population, compute range + quantile colour fn ─────────
     let minPop = Infinity, maxPop = -Infinity, totalPop = 0;
     fc.features.forEach(f => {
       const pop = popByNode[String(f.properties.nodeid)] ?? 0;
@@ -269,14 +284,13 @@ document.getElementById('load-btn').addEventListener('click', async () => {
       if (pop < minPop) minPop = pop;
       totalPop += pop;
     });
-    const logMin   = Math.log(minPop + 1);
-    const logRange = Math.log(maxPop + 1) - logMin;
+    const colorFor = buildQuantileColorFn(popByNode);
 
     // ── Step 4: render choropleth ─────────────────────────────────────────────
     if (geojsonLayer) map.removeLayer(geojsonLayer);
     geojsonLayer = L.geoJSON(fc, {
       style: feature => ({
-        fillColor:   choroplethColor(feature.properties._population, logMin, logRange),
+        fillColor:   colorFor(feature.properties._population),
         fillOpacity: 0.78,
         color:       '#666',
         weight:      0.7,
