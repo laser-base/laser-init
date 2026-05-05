@@ -466,7 +466,7 @@ function addLegend(minPop, maxPop) {
 
 // Build the generate.py command from current UI state.
 function buildGenerateCmd(iso, level, source) {
-  const parts = ['python3 services/generate.py', iso, level, '2020', '2020'];
+  const parts = ['laser-generate', iso, level, '2020', '2020'];
   if (source !== 'unocha') parts.push(`--shape-source ${source}`);
   parts.push('--emit-scripts');
   return parts.join(' ');
