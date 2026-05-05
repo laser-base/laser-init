@@ -81,7 +81,14 @@ def _read(iso: str, level: int) -> gpd.GeoDataFrame:
         gdf["name"] = gdf["NAME_3"].astype(str) + ":" + gdf["NAME_4"].astype(str)
 
     gid_col = f"GID_{level}"
-    return gdf[["nodeid", "name", gid_col, "geometry"]].rename(columns={gid_col: "gid"})
+    gdf = gdf[["nodeid", "name", gid_col, "geometry"]].rename(columns={gid_col: "gid"})
+
+    # Simplify to ~100 m (0.001°). Matches WorldPop raster resolution, removes
+    # the coordinate bloat that OOMkills the pod on large level-2+ countries.
+    if level >= 1:
+        gdf.geometry = gdf.geometry.simplify(0.001, preserve_topology=True)
+
+    return gdf
 
 
 app = FastAPI(title="gadm-service")

@@ -28,7 +28,7 @@ import rasterio.mask
 import rasterio.windows
 from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from shapely.geometry import mapping
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -37,6 +37,10 @@ logger = logging.getLogger(__name__)
 CACHE_DIR = Path(os.environ.get("CACHE_DIR", Path.home() / ".laser" / "cache" / "worldpop"))
 _YEAR_DEFAULT = 2020
 _MAX_RASTER_MB = 2000  # on-demand size limit; larger rasters must use generate.py
+
+# 512 MB GDAL block cache — default is 64 MB which is too small when reading many
+# per-polygon windows from a large compressed GeoTIFF (constant cache thrash).
+os.environ.setdefault("GDAL_CACHEMAX", "512")
 
 # Per-(iso, year) lock prevents duplicate concurrent downloads of the same raster.
 _lock_registry_mu: threading.Lock = threading.Lock()
@@ -152,6 +156,121 @@ def prewarm(
     return {"status": "ok", "iso": iso.upper(), "year": year}
 
 
+# Maximum pixels read from disk per strip in windowed mode. Each strip is one
+# horizontal band of a polygon's bounding-box window. Keeping this at 8 M pixels
+# caps per-strip peak memory at ~64 MB (float32 data + bool mask).
+_MAX_STRIP_PIXELS = 8_000_000
+
+
+def _sum_polygon_windowed(src, win, transform, geom, nodata) -> float:
+    """Sum raster pixels inside geom using horizontal strips to bound memory.
+
+    Used when the polygon's bounding-box window is too large to read at once
+    (e.g. Amazonian states in BRA). Reads _MAX_STRIP_PIXELS pixels at a time.
+    """
+    height = int(win.height)
+    width  = int(win.width)
+    strip_rows = max(1, _MAX_STRIP_PIXELS // max(width, 1))
+    total = 0.0
+    for row_start in range(0, height, strip_rows):
+        strip_h = min(strip_rows, height - row_start)
+        strip_win = rasterio.windows.Window(
+            int(win.col_off), int(win.row_off) + row_start, width, strip_h
+        )
+        strip_data = src.read(1, window=strip_win)
+        strip_transform = rasterio.windows.transform(strip_win, transform)
+        strip_mask = rasterio.features.geometry_mask(
+            [mapping(geom)],
+            out_shape=(strip_h, width),
+            transform=strip_transform,
+            invert=True,
+        )
+        vals = strip_data[strip_mask].astype(np.float64)
+        if nodata is not None:
+            vals = vals[vals != nodata]
+        total += float(np.sum(vals))
+    return total
+
+
+def _aggregate_stream(iso: str, year: int, features: list, gdf):
+    """Generator that yields a JSON object one key:value at a time.
+
+    Streaming keeps data flowing to the client throughout computation so the
+    Azure Load Balancer (4-min idle timeout) never sees a silent connection,
+    even when aggregating large-country rasters like BRA or IDN.
+    """
+    raster_path = _raster_path(iso, year)
+    _2GB = 2 * 1024 ** 3
+
+    with rasterio.open(str(raster_path)) as src:
+        nodata    = src.nodata
+        transform = src.transform
+        src_win   = rasterio.windows.Window(0, 0, src.width, src.height)
+        uncompressed = src.width * src.height * 4  # float32 bytes
+
+        if uncompressed < _2GB:
+            data = src.read(1)
+            logger.info("In-memory mode (%.0f MB uncompressed)", uncompressed / 1e6)
+            ordered = list(zip(features, gdf.geometry))
+        else:
+            data = None
+            logger.info("Windowed mode (%.0f MB uncompressed — too large for in-memory)",
+                        uncompressed / 1e6)
+            # Sort by raster row then column so consecutive polygons share GDAL
+            # tile-cache entries — critical for level-2 queries with hundreds of
+            # small polygons spread across a large compressed raster.
+            def _scan_key(feat_geom):
+                _, geom = feat_geom
+                win = rasterio.windows.from_bounds(
+                    *geom.bounds, transform=transform
+                ).round_offsets()
+                return (int(win.row_off), int(win.col_off))
+            ordered = sorted(zip(features, gdf.geometry), key=_scan_key)
+            logger.info("Sorted %d features by raster scan order", len(ordered))
+
+        first = True
+        for feat, geom in ordered:
+            nodeid = int(feat["properties"]["nodeid"])
+            try:
+                win = rasterio.windows.from_bounds(
+                    *geom.bounds, transform=transform
+                ).round_lengths().round_offsets()
+                win = win.intersection(src_win)
+
+                height = int(win.height)
+                width  = int(win.width)
+                if height <= 0 or width <= 0:
+                    pop = 0.0
+                elif data is not None:
+                    row_off = int(win.row_off)
+                    col_off = int(win.col_off)
+                    window_data = data[row_off:row_off + height, col_off:col_off + width]
+                    window_transform = rasterio.windows.transform(win, transform)
+                    geom_mask = rasterio.features.geometry_mask(
+                        [mapping(geom)],
+                        out_shape=(height, width),
+                        transform=window_transform,
+                        invert=True,
+                    )
+                    vals = window_data[geom_mask].astype(np.float64)
+                    if nodata is not None:
+                        vals = vals[vals != nodata]
+                    pop = float(np.sum(vals))
+                else:
+                    # Windowed mode: read in strips to bound peak memory.
+                    pop = _sum_polygon_windowed(src, win, transform, geom, nodata)
+            except Exception:
+                logger.exception("Error aggregating nodeid=%d for %s", nodeid, iso)
+                pop = 0.0
+
+            prefix = b"{" if first else b","
+            first = False
+            yield prefix + f'"{nodeid}":{pop}'.encode()
+
+    yield b"}" if not first else b"{}"
+    logger.info("Aggregated %d features for %s/%d", len(features), iso, year)
+
+
 @app.post("/aggregate/{iso}")
 def aggregate(
     iso: str,
@@ -164,77 +283,12 @@ def aggregate(
     if not features:
         raise HTTPException(400, "FeatureCollection has no features")
 
-    raster_path = _download_raster(iso.upper(), year)
-
-    raster_mb = raster_path.stat().st_size // (1024 * 1024)
-    if raster_mb > _MAX_RASTER_MB:
-        raise HTTPException(
-            422,
-            f"{iso.upper()} raster is {raster_mb} MB — too large to aggregate in real time "
-            f"(limit {_MAX_RASTER_MB} MB; would exceed the load-balancer timeout). "
-            f"Use generate.py instead, which retries automatically."
-        )
+    _download_raster(iso.upper(), year)
 
     gdf = gpd.GeoDataFrame.from_features(features, crs="EPSG:4326")
-
     logger.info("Aggregating %s/%d over %d features ...", iso.upper(), year, len(gdf))
 
-    # For countries whose raster fits in memory (< 2 GB uncompressed float32),
-    # read the whole array once and slice per polygon — fast, one disk read.
-    # For very large countries (CAN ~21 GB, RUS, AUS, …) read only each
-    # polygon's bounding-box window from disk to avoid OOM.
-    _2GB = 2 * 1024 ** 3
-
-    result = {}
-    with rasterio.open(str(raster_path)) as src:
-        nodata    = src.nodata
-        transform = src.transform
-        src_win   = rasterio.windows.Window(0, 0, src.width, src.height)
-        uncompressed = src.width * src.height * 4  # float32 bytes
-
-        if uncompressed < _2GB:
-            data = src.read(1)  # float32 — read entire raster once
-            logger.info("In-memory mode (%.0f MB uncompressed)", uncompressed / 1e6)
-        else:
-            data = None
-            logger.info("Windowed mode (%.0f MB uncompressed — too large for in-memory)",
-                        uncompressed / 1e6)
-
-        for feat, geom in zip(features, gdf.geometry):
-            nodeid = int(feat["properties"]["nodeid"])
-            try:
-                win = rasterio.windows.from_bounds(
-                    *geom.bounds, transform=transform
-                ).round_lengths().round_offsets()
-                win = win.intersection(src_win)
-
-                height = int(win.height)
-                width  = int(win.width)
-                if height <= 0 or width <= 0:
-                    result[nodeid] = 0.0
-                    continue
-
-                if data is not None:
-                    row_off = int(win.row_off)
-                    col_off = int(win.col_off)
-                    window_data = data[row_off:row_off + height, col_off:col_off + width]
-                else:
-                    window_data = src.read(1, window=win)
-
-                window_transform = rasterio.windows.transform(win, transform)
-                geom_mask = rasterio.features.geometry_mask(
-                    [mapping(geom)],
-                    out_shape=(height, width),
-                    transform=window_transform,
-                    invert=True,
-                )
-
-                vals = window_data[geom_mask].astype(np.float64)
-                if nodata is not None:
-                    vals = vals[vals != nodata]
-                result[nodeid] = float(np.sum(vals))
-            except Exception:
-                result[nodeid] = 0.0
-
-    logger.info("Aggregated %d features for %s/%d", len(result), iso.upper(), year)
-    return JSONResponse(content=result)
+    return StreamingResponse(
+        _aggregate_stream(iso.upper(), year, features, gdf),
+        media_type="application/json",
+    )

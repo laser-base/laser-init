@@ -41,9 +41,24 @@
       font-size: 13px;
       font-weight: 600;
       height: 28px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
     }
     #load-btn:hover    { background: #1e40af; }
     #load-btn:disabled { background: #93c5fd; cursor: default; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #spinner {
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    #load-btn.loading #spinner { display: block; }
+
     #status { font-size: 12px; color: #555; align-self: center; max-width: 480px; white-space: pre-wrap; }
 
     #map { flex: 1; }
@@ -109,7 +124,7 @@
       <option value="boundaries">Boundaries only</option>
     </select>
   </label>
-  <button id="load-btn">Load</button>
+  <button id="load-btn"><div id="spinner"></div>Load</button>
   <span id="status"></span>
 </div>
 
@@ -212,6 +227,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
   const status    = document.getElementById('status');
 
   btn.disabled = true;
+  btn.classList.add('loading');
   setStatus('Fetching shapes…');
 
   // Wrapper: fetch with a descriptive error that includes the URL, HTTP status,
@@ -265,17 +281,70 @@ document.getElementById('load-btn').addEventListener('click', async () => {
       return;
     }
 
-    // ── Step 2: aggregate population via worldpop ─────────────────────────────
-    setStatus(`✓ ${fc.features.length} shapes.  Requesting WorldPop population (may take a minute if raster not cached)…`);
+    // ── Step 2: guard against slow aggregation ────────────────────────────────
+    // Countries whose uncompressed raster exceeds 2 GB use windowed disk reads
+    // instead of in-memory mode. For those countries, aggregating hundreds of
+    // polygons takes hours. Warn and bail out early.
+    const _LARGE_RASTER_ISOS = new Set([
+      'BRA','RUS','CAN','USA','CHN','AUS','IND','ARG','KAZ','DZA',
+      'COD','SAU','MEX','IDN','SDN','LBY','IRN','MNG','PER','TCD',
+      'ANG','MAL','ETH','MLI','NER','COL','BOL','MRT','EGY','TZA',
+    ]);
+    const _MAX_WINDOWED_POLYGONS = 500;
+    if (_LARGE_RASTER_ISOS.has(iso.toUpperCase()) && fc.features.length > _MAX_WINDOWED_POLYGONS) {
+      setStatus(
+        `⚠ ${fc.features.length} polygons for ${iso.toUpperCase()} — WorldPop aggregation at this admin level would take many hours in the browser.\n\n` +
+        `Use the command line instead:\n` +
+        `  python generate.py --iso ${iso.toUpperCase()} --level ${level} --year ${year}`,
+        true
+      );
+      // Still render the boundary map so the user can see the shapes.
+      if (geojsonLayer) map.removeLayer(geojsonLayer);
+      if (legendControl) { map.removeControl(legendControl); legendControl = null; }
+      geojsonLayer = L.geoJSON(fc, {
+        style: { fillColor: '#4a90d9', fillOpacity: 0.35, color: '#2563eb', weight: 1 },
+        onEachFeature: (feature, layer) => {
+          const name = feature.properties.name || feature.properties.NAME || '';
+          layer.bindTooltip(`<strong>${name}</strong>`, { sticky: true });
+          layer.on('mouseover', function () { this.setStyle({ weight: 2, color: '#111' }); });
+          layer.on('mouseout',  function () { geojsonLayer.resetStyle(this); });
+        },
+      }).addTo(map);
+      map.fitBounds(geojsonLayer.getBounds());
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      return;
+    }
+
+    // ── Step 3: aggregate population via worldpop ─────────────────────────────
+    // Truncate coordinates to 3 decimal places (~100 m) before sending —
+    // WorldPop rasters are ~1 km resolution so this loses nothing meaningful
+    // but cuts payload size 5–10× for countries with detailed borders (BRA, IDN…).
+    function truncateCoords(coords, dp) {
+      if (typeof coords[0] === 'number') return coords.map(v => +v.toFixed(dp));
+      return coords.map(c => truncateCoords(c, dp));
+    }
+    const fcSlim = {
+      type: 'FeatureCollection',
+      features: fc.features.map(f => ({
+        ...f,
+        geometry: {
+          ...f.geometry,
+          coordinates: truncateCoords(f.geometry.coordinates, 3),
+        },
+      })),
+    };
+
+    setStatus(`✓ ${fc.features.length} shapes.  Requesting WorldPop population (may take a few minutes for large countries)…`);
     const wpEndpoint = `${wpUrl}/aggregate/${iso}?year=${year}`;
     const wpResp = await apiFetch('WorldPop', wpEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(fc),
+      body: JSON.stringify(fcSlim),
     });
     const popByNode = await wpResp.json();
 
-    // ── Step 3: attach population, compute range + quantile colour fn ─────────
+    // ── Step 4: attach population, compute range + quantile colour fn ─────────
     let minPop = Infinity, maxPop = -Infinity, totalPop = 0;
     fc.features.forEach(f => {
       const pop = popByNode[String(f.properties.nodeid)] ?? 0;
@@ -286,7 +355,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
     });
     const colorFor = buildQuantileColorFn(popByNode);
 
-    // ── Step 4: render choropleth ─────────────────────────────────────────────
+    // ── Step 5: render choropleth ─────────────────────────────────────────────
     if (geojsonLayer) map.removeLayer(geojsonLayer);
     geojsonLayer = L.geoJSON(fc, {
       style: feature => ({
@@ -317,6 +386,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
     console.error(err);
   } finally {
     btn.disabled = false;
+    btn.classList.remove('loading');
   }
 });
 </script>

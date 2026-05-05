@@ -1,16 +1,12 @@
 # geodata-services.yaml — PVCs + Deployments + LoadBalancer Services
 #
 # Deploys all 5 geodata microservices into the laser-ai namespace.
-# Each service gets its own LoadBalancer IP (matching the jenner-mcp pattern).
-# Each service mounts a PVC at /cache for persistent raster/shapefile storage.
 #
 # Deploy:
 #   kubectl apply -f AKS/geodata-services.yaml --kubeconfig AKS/kube.conf
 #
 # Push images first:
 #   make push-all-geodata TAG=v0.5.1a    (from services/ directory)
-
-# ── PersistentVolumeClaims ─────────────────────────────────────────────────────
 
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -82,7 +78,7 @@ spec:
     requests:
       storage: 100Gi
 
-# ── unwpp-service (UN World Population Prospects) ─────────────────────────────
+# ── unwpp-service ─────────────────────────────────────────────────────────────
 
 ---
 apiVersion: apps/v1
@@ -95,6 +91,8 @@ metadata:
 spec:
   replicas: 1
   revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: laser-unwpp-svc
@@ -108,7 +106,7 @@ spec:
         - name: artifactory-login
       containers:
         - name: laser-unwpp-svc
-          image: idm-docker-staging.packages.idmod.org/laser-unwpp-service:latest
+          image: idm-docker-staging.packages.idmod.org/laser-unwpp-service:v0.5.1a
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -117,11 +115,11 @@ spec:
               value: /cache
           resources:
             requests:
-              cpu: "250m"
-              memory: "512Mi"
+              cpu: "500m"
+              memory: "3Gi"
             limits:
-              cpu: "1"
-              memory: "1Gi"
+              cpu: "2"
+              memory: "6Gi"
           volumeMounts:
             - name: cache
               mountPath: /cache
@@ -166,6 +164,8 @@ metadata:
 spec:
   replicas: 1
   revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: laser-gadm-svc
@@ -179,7 +179,7 @@ spec:
         - name: artifactory-login
       containers:
         - name: laser-gadm-svc
-          image: idm-docker-staging.packages.idmod.org/laser-gadm-service:latest
+          image: idm-docker-staging.packages.idmod.org/laser-gadm-service:v0.3.2a
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -237,6 +237,8 @@ metadata:
 spec:
   replicas: 1
   revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: laser-geoboundaries-svc
@@ -250,7 +252,7 @@ spec:
         - name: artifactory-login
       containers:
         - name: laser-geoboundaries-svc
-          image: idm-docker-staging.packages.idmod.org/laser-geoboundaries-service:latest
+          image: idm-docker-staging.packages.idmod.org/laser-geoboundaries-service:v0.5.1a
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -308,6 +310,8 @@ metadata:
 spec:
   replicas: 1
   revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: laser-unocha-svc
@@ -321,7 +325,7 @@ spec:
         - name: artifactory-login
       containers:
         - name: laser-unocha-svc
-          image: idm-docker-staging.packages.idmod.org/laser-unocha-service:latest
+          image: idm-docker-staging.packages.idmod.org/laser-unocha-service:v0.5.1a
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -379,6 +383,8 @@ metadata:
 spec:
   replicas: 1
   revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: laser-worldpop-svc
@@ -392,7 +398,7 @@ spec:
         - name: artifactory-login
       containers:
         - name: laser-worldpop-svc
-          image: idm-docker-staging.packages.idmod.org/laser-worldpop-service:latest
+          image: idm-docker-staging.packages.idmod.org/laser-worldpop-service:v0.5.12a
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
