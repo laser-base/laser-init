@@ -49,6 +49,8 @@
     #load-btn:disabled { background: #93c5fd; cursor: default; }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Small spinner inside the Load button */
     #spinner {
       width: 12px; height: 12px;
       border: 2px solid rgba(255,255,255,.4);
@@ -56,8 +58,34 @@
       border-radius: 50%;
       animation: spin .7s linear infinite;
       display: none;
+      flex-shrink: 0;
     }
-    #load-btn.loading #spinner { display: block; }
+    #load-btn.loading #spinner { display: inline-block; }
+
+    /* Centered overlay spinner on the map */
+    #map-spinner {
+      display: none;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+      background: rgba(255,255,255,.85);
+      border-radius: 12px;
+      padding: 18px 24px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+      pointer-events: none;
+    }
+    #map-spinner .ring {
+      width: 40px; height: 40px;
+      border: 4px solid #dbeafe;
+      border-top-color: #1d4ed8;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 10px;
+    }
+    #map-spinner .label { font-size: 12px; color: #555; }
+    #map-spinner.visible { display: block; }
 
     #status { font-size: 12px; color: #555; align-self: center; max-width: 480px; white-space: pre-wrap; }
 
@@ -82,6 +110,10 @@
       margin-bottom: 3px;
     }
     .wp-legend .labels { display: flex; justify-content: space-between; color: #555; }
+
+    /* map wrapper so the overlay can use position:absolute */
+    #map-wrap { flex: 1; position: relative; }
+    #map { width: 100%; height: 100%; }
   </style>
 </head>
 <body>
@@ -100,8 +132,164 @@
   <label>WorldPop URL
     <input type="text" id="wp-url" value="http://4.155.140.158"/>
   </label>
-  <label>ISO (3-letter)
-    <input type="text" id="iso" class="short" value="NGA" maxlength="3"/>
+  <label>Country
+    <input type="text" id="iso" list="country-list" value="Nigeria (NGA)"
+           style="width:180px" placeholder="e.g. Nigeria or NGA" autocomplete="off"/>
+    <datalist id="country-list">
+      <option value="Afghanistan (AFG)">
+      <option value="Albania (ALB)">
+      <option value="Algeria (DZA)">
+      <option value="Angola (AGO)">
+      <option value="Argentina (ARG)">
+      <option value="Armenia (ARM)">
+      <option value="Australia (AUS)">
+      <option value="Austria (AUT)">
+      <option value="Azerbaijan (AZE)">
+      <option value="Bangladesh (BGD)">
+      <option value="Belarus (BLR)">
+      <option value="Belgium (BEL)">
+      <option value="Benin (BEN)">
+      <option value="Bolivia (BOL)">
+      <option value="Bosnia and Herzegovina (BIH)">
+      <option value="Botswana (BWA)">
+      <option value="Brazil (BRA)">
+      <option value="Bulgaria (BGR)">
+      <option value="Burkina Faso (BFA)">
+      <option value="Burundi (BDI)">
+      <option value="Cambodia (KHM)">
+      <option value="Cameroon (CMR)">
+      <option value="Canada (CAN)">
+      <option value="Central African Republic (CAF)">
+      <option value="Chad (TCD)">
+      <option value="Chile (CHL)">
+      <option value="China (CHN)">
+      <option value="Colombia (COL)">
+      <option value="Comoros (COM)">
+      <option value="Congo (COG)">
+      <option value="Costa Rica (CRI)">
+      <option value="Côte d'Ivoire (CIV)">
+      <option value="Croatia (HRV)">
+      <option value="Cuba (CUB)">
+      <option value="Czech Republic (CZE)">
+      <option value="Denmark (DNK)">
+      <option value="Djibouti (DJI)">
+      <option value="Dominican Republic (DOM)">
+      <option value="DR Congo (COD)">
+      <option value="Ecuador (ECU)">
+      <option value="Egypt (EGY)">
+      <option value="El Salvador (SLV)">
+      <option value="Eritrea (ERI)">
+      <option value="Estonia (EST)">
+      <option value="Eswatini (SWZ)">
+      <option value="Ethiopia (ETH)">
+      <option value="Finland (FIN)">
+      <option value="France (FRA)">
+      <option value="Gabon (GAB)">
+      <option value="Gambia (GMB)">
+      <option value="Georgia (GEO)">
+      <option value="Germany (DEU)">
+      <option value="Ghana (GHA)">
+      <option value="Greece (GRC)">
+      <option value="Guatemala (GTM)">
+      <option value="Guinea (GIN)">
+      <option value="Guinea-Bissau (GNB)">
+      <option value="Haiti (HTI)">
+      <option value="Honduras (HND)">
+      <option value="Hungary (HUN)">
+      <option value="India (IND)">
+      <option value="Indonesia (IDN)">
+      <option value="Iran (IRN)">
+      <option value="Iraq (IRQ)">
+      <option value="Ireland (IRL)">
+      <option value="Israel (ISR)">
+      <option value="Italy (ITA)">
+      <option value="Jamaica (JAM)">
+      <option value="Japan (JPN)">
+      <option value="Jordan (JOR)">
+      <option value="Kazakhstan (KAZ)">
+      <option value="Kenya (KEN)">
+      <option value="Kosovo (XKX)">
+      <option value="Kuwait (KWT)">
+      <option value="Kyrgyzstan (KGZ)">
+      <option value="Laos (LAO)">
+      <option value="Latvia (LVA)">
+      <option value="Lebanon (LBN)">
+      <option value="Lesotho (LSO)">
+      <option value="Liberia (LBR)">
+      <option value="Libya (LBY)">
+      <option value="Lithuania (LTU)">
+      <option value="Luxembourg (LUX)">
+      <option value="Madagascar (MDG)">
+      <option value="Malawi (MWI)">
+      <option value="Malaysia (MYS)">
+      <option value="Mali (MLI)">
+      <option value="Mauritania (MRT)">
+      <option value="Mauritius (MUS)">
+      <option value="Mexico (MEX)">
+      <option value="Moldova (MDA)">
+      <option value="Mongolia (MNG)">
+      <option value="Morocco (MAR)">
+      <option value="Mozambique (MOZ)">
+      <option value="Myanmar (MMR)">
+      <option value="Namibia (NAM)">
+      <option value="Nepal (NPL)">
+      <option value="Netherlands (NLD)">
+      <option value="New Zealand (NZL)">
+      <option value="Nicaragua (NIC)">
+      <option value="Niger (NER)">
+      <option value="Nigeria (NGA)">
+      <option value="North Korea (PRK)">
+      <option value="North Macedonia (MKD)">
+      <option value="Norway (NOR)">
+      <option value="Oman (OMN)">
+      <option value="Pakistan (PAK)">
+      <option value="Palestine (PSE)">
+      <option value="Panama (PAN)">
+      <option value="Papua New Guinea (PNG)">
+      <option value="Paraguay (PRY)">
+      <option value="Peru (PER)">
+      <option value="Philippines (PHL)">
+      <option value="Poland (POL)">
+      <option value="Portugal (PRT)">
+      <option value="Romania (ROU)">
+      <option value="Russia (RUS)">
+      <option value="Rwanda (RWA)">
+      <option value="Saudi Arabia (SAU)">
+      <option value="Senegal (SEN)">
+      <option value="Serbia (SRB)">
+      <option value="Sierra Leone (SLE)">
+      <option value="Somalia (SOM)">
+      <option value="South Africa (ZAF)">
+      <option value="South Korea (KOR)">
+      <option value="South Sudan (SSD)">
+      <option value="Spain (ESP)">
+      <option value="Sri Lanka (LKA)">
+      <option value="Sudan (SDN)">
+      <option value="Sweden (SWE)">
+      <option value="Switzerland (CHE)">
+      <option value="Syria (SYR)">
+      <option value="Taiwan (TWN)">
+      <option value="Tajikistan (TJK)">
+      <option value="Tanzania (TZA)">
+      <option value="Thailand (THA)">
+      <option value="Timor-Leste (TLS)">
+      <option value="Togo (TGO)">
+      <option value="Tunisia (TUN)">
+      <option value="Turkey (TUR)">
+      <option value="Turkmenistan (TKM)">
+      <option value="Uganda (UGA)">
+      <option value="Ukraine (UKR)">
+      <option value="United Arab Emirates (ARE)">
+      <option value="United Kingdom (GBR)">
+      <option value="United States (USA)">
+      <option value="Uruguay (URY)">
+      <option value="Uzbekistan (UZB)">
+      <option value="Venezuela (VEN)">
+      <option value="Vietnam (VNM)">
+      <option value="Yemen (YEM)">
+      <option value="Zambia (ZMB)">
+      <option value="Zimbabwe (ZWE)">
+    </datalist>
   </label>
   <label>Admin level
     <select id="level">
@@ -124,11 +312,17 @@
       <option value="boundaries">Boundaries only</option>
     </select>
   </label>
-  <button id="load-btn"><div id="spinner"></div>Load</button>
+  <button id="load-btn"><span id="spinner"></span>Load</button>
   <span id="status"></span>
 </div>
 
-<div id="map"></div>
+<div id="map-wrap">
+  <div id="map"></div>
+  <div id="map-spinner">
+    <div class="ring"></div>
+    <div class="label" id="map-spinner-label">Loading…</div>
+  </div>
+</div>
 
 <script>
 const map = L.map('map').setView([10, 20], 3);
@@ -219,15 +413,27 @@ function addLegend(minPop, maxPop) {
 document.getElementById('load-btn').addEventListener('click', async () => {
   const shapesUrl = document.getElementById('shapes-url').value.trim().replace(/\/$/, '');
   const wpUrl     = document.getElementById('wp-url').value.trim().replace(/\/$/, '');
-  const iso       = document.getElementById('iso').value.trim().toUpperCase();
+  // Accept either "NGA" or "Nigeria (NGA)" from the datalist.
+  const _isoRaw   = document.getElementById('iso').value.trim();
+  const _isoMatch = _isoRaw.match(/\(([A-Z]{3})\)\s*$/i);
+  const iso       = (_isoMatch ? _isoMatch[1] : _isoRaw.slice(0, 3)).toUpperCase();
   const level     = document.getElementById('level').value;
   const year      = document.getElementById('year').value;
   const mode      = document.getElementById('mode').value;
-  const btn       = document.getElementById('load-btn');
-  const status    = document.getElementById('status');
+  const btn        = document.getElementById('load-btn');
+  const status     = document.getElementById('status');
+  const mapSpinner = document.getElementById('map-spinner');
+  const spinLabel  = document.getElementById('map-spinner-label');
+
+  function showSpinner(label) {
+    spinLabel.textContent = label;
+    mapSpinner.classList.add('visible');
+  }
+  function hideSpinner() { mapSpinner.classList.remove('visible'); }
 
   btn.disabled = true;
   btn.classList.add('loading');
+  showSpinner('Fetching shapes…');
   setStatus('Fetching shapes…');
 
   // Wrapper: fetch with a descriptive error that includes the URL, HTTP status,
@@ -262,6 +468,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
     const shapesResp = await apiFetch('Shapes', shapesEndpoint);
     const fc = await shapesResp.json();
     setStatus(`✓ ${fc.features.length} shapes loaded.  ${mode === 'boundaries' ? '' : 'Requesting population…'}`);
+    if (mode !== 'boundaries') showSpinner(`Aggregating population\n${fc.features.length} regions…`);
 
     if (mode === 'boundaries') {
       // ── Boundaries-only mode ───────────────────────────────────────────────
@@ -278,6 +485,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
       }).addTo(map);
       map.fitBounds(geojsonLayer.getBounds());
       setStatus(`${fc.features.length} regions loaded`);
+      hideSpinner();
       return;
     }
 
@@ -311,6 +519,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
         },
       }).addTo(map);
       map.fitBounds(geojsonLayer.getBounds());
+      hideSpinner();
       btn.disabled = false;
       btn.classList.remove('loading');
       return;
@@ -385,6 +594,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
     setStatus(err.message, true);
     console.error(err);
   } finally {
+    hideSpinner();
     btn.disabled = false;
     btn.classList.remove('loading');
   }
