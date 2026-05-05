@@ -19,10 +19,10 @@ Usage:
     python generate.py ETH 2 2010 2020 --shape-source gadm
     python generate.py NGA 1 2015 2025 --shape-source unocha --output-dir NGA/2015
 
-Default service URLs (override with --*-url flags):
-    shapes:   gadm=localhost:8101  geoboundaries=localhost:8102  unocha=localhost:8103
-    worldpop: localhost:8104
-    unwpp:    localhost:8100
+Service URLs (in precedence order):
+    1. --shapes-url / --worldpop-url / --unwpp-url CLI flags
+    2. laser_config.yaml keys: gadm_url, geoboundaries_url, unocha_url, worldpop_url, unwpp_url
+    3. localhost fallbacks (8101/8102/8103/8104/8100)
 """
 
 import argparse
@@ -38,11 +38,25 @@ import pandas as pd
 import yaml
 from shapely.geometry import shape
 
-SHAPE_SOURCE_PORTS = {
-    "gadm":          8101,
-    "geoboundaries": 8102,
-    "unocha":        8103,
+from laser.init.config import configuration as _cfg
+
+# Localhost fallbacks (used only when neither laser_config.yaml nor --*-url flags supply a URL).
+_SHAPE_SOURCE_LOCALHOST = {
+    "gadm":          "http://127.0.0.1:8101",
+    "geoboundaries": "http://127.0.0.1:8102",
+    "unocha":        "http://127.0.0.1:8103",
 }
+
+# Config-file keys for each shape source.
+_SHAPE_SOURCE_CFG_KEY = {
+    "gadm":          "gadm_url",
+    "geoboundaries": "geoboundaries_url",
+    "unocha":        "unocha_url",
+}
+
+
+def _default_shapes_url(source: str) -> str:
+    return _cfg.get(_SHAPE_SOURCE_CFG_KEY[source], _SHAPE_SOURCE_LOCALHOST[source])
 
 
 # ── HTTP helpers ───────────────────────────────────────────────────────────────
@@ -255,9 +269,12 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=None,
                         help="Output directory (default: ./{ISO}/{start_year})")
     parser.add_argument("--shapes-url", default=None,
-                        help="Shape service base URL (auto-selected from --shape-source)")
-    parser.add_argument("--worldpop-url", default="http://127.0.0.1:8104")
-    parser.add_argument("--unwpp-url",    default="http://127.0.0.1:8100")
+                        help="Shape service base URL (auto-selected from --shape-source; "
+                             "falls back to laser_config.yaml then localhost)")
+    parser.add_argument("--worldpop-url",
+                        default=_cfg.get("worldpop_url", "http://127.0.0.1:8104"))
+    parser.add_argument("--unwpp-url",
+                        default=_cfg.get("unwpp_url", "http://127.0.0.1:8100"))
     parser.add_argument("--raster-year",  type=int, default=None,
                         help="WorldPop raster year (default: start_year clamped to 2020)")
     parser.add_argument("--model", choices=["SI", "SIR", "SEIR"], default="SEIR",
@@ -275,8 +292,7 @@ def main() -> None:
     raster_year = args.raster_year or min(start_year, 2020)
     output_dir  = args.output_dir or (Path(iso) / str(start_year))
 
-    shapes_url  = (args.shapes_url or
-                   f"http://127.0.0.1:{SHAPE_SOURCE_PORTS[shape_src]}").rstrip("/")
+    shapes_url  = (args.shapes_url or _default_shapes_url(shape_src)).rstrip("/")
     wp_url      = args.worldpop_url.rstrip("/")
     unwpp_url   = args.unwpp_url.rstrip("/")
 
