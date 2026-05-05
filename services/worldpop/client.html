@@ -114,6 +114,49 @@
     /* map wrapper so the overlay can use position:absolute */
     #map-wrap { flex: 1; position: relative; }
     #map { width: 100%; height: 100%; }
+
+    /* generate.py command strip — shown after successful choropleth */
+    #cmd-box {
+      display: none;
+      padding: 7px 12px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    #cmd-box .cmd-label {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    #cmd-box code {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 5px 10px;
+      border-radius: 4px;
+      flex: 1;
+    }
+    #cmd-copy {
+      background: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 4px 8px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    #cmd-copy:hover { background: #e2e8f0; color: #1e293b; }
+    #cmd-copy.copied { color: #16a34a; border-color: #16a34a; }
   </style>
 </head>
 <body>
@@ -324,6 +367,17 @@
   </div>
 </div>
 
+<div id="cmd-box">
+  <span class="cmd-label">Run locally to generate model files:</span>
+  <code id="cmd-text"></code>
+  <button id="cmd-copy" title="Copy to clipboard">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+    <span id="cmd-copy-label">Copy</span>
+  </button>
+</div>
+
 <script>
 const map = L.map('map').setView([10, 20], 3);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -410,6 +464,33 @@ function addLegend(minPop, maxPop) {
   legendControl.addTo(map);
 }
 
+// Build the generate.py command from current UI state.
+function buildGenerateCmd(iso, level, source) {
+  const parts = ['python3 services/generate.py', iso, level, '2020', '2020'];
+  if (source !== 'unocha') parts.push(`--shape-source ${source}`);
+  parts.push('--emit-scripts');
+  return parts.join(' ');
+}
+
+function showCmdBox(iso, level, source) {
+  const cmd = buildGenerateCmd(iso, level, source);
+  document.getElementById('cmd-text').textContent = cmd;
+  document.getElementById('cmd-box').style.display = 'flex';
+}
+
+document.getElementById('cmd-copy').addEventListener('click', function () {
+  const text = document.getElementById('cmd-text').textContent;
+  const label = document.getElementById('cmd-copy-label');
+  navigator.clipboard.writeText(text).then(() => {
+    this.classList.add('copied');
+    label.textContent = 'Copied!';
+    setTimeout(() => {
+      this.classList.remove('copied');
+      label.textContent = 'Copy';
+    }, 1500);
+  });
+});
+
 document.getElementById('load-btn').addEventListener('click', async () => {
   const shapesUrl = document.getElementById('shapes-url').value.trim().replace(/\/$/, '');
   const wpUrl     = document.getElementById('wp-url').value.trim().replace(/\/$/, '');
@@ -420,10 +501,14 @@ document.getElementById('load-btn').addEventListener('click', async () => {
   const level     = document.getElementById('level').value;
   const year      = document.getElementById('year').value;
   const mode      = document.getElementById('mode').value;
+  const source    = document.getElementById('source').value;
   const btn        = document.getElementById('load-btn');
   const status     = document.getElementById('status');
   const mapSpinner = document.getElementById('map-spinner');
   const spinLabel  = document.getElementById('map-spinner-label');
+
+  // Reset command box for each new load.
+  document.getElementById('cmd-box').style.display = 'none';
 
   function showSpinner(label) {
     spinLabel.textContent = label;
@@ -501,9 +586,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
     const _MAX_WINDOWED_POLYGONS = 500;
     if (_LARGE_RASTER_ISOS.has(iso.toUpperCase()) && fc.features.length > _MAX_WINDOWED_POLYGONS) {
       setStatus(
-        `⚠ ${fc.features.length} polygons for ${iso.toUpperCase()} — WorldPop aggregation at this admin level would take many hours in the browser.\n\n` +
-        `Use the command line instead:\n` +
-        `  python generate.py --iso ${iso.toUpperCase()} --level ${level} --year ${year}`,
+        `⚠ ${fc.features.length} polygons for ${iso.toUpperCase()} — WorldPop aggregation at this admin level would take many hours in the browser. Use the command below instead.`,
         true
       );
       // Still render the boundary map so the user can see the shapes.
@@ -519,6 +602,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
         },
       }).addTo(map);
       map.fitBounds(geojsonLayer.getBounds());
+      showCmdBox(iso, level, source);
       hideSpinner();
       btn.disabled = false;
       btn.classList.remove('loading');
@@ -588,6 +672,7 @@ document.getElementById('load-btn').addEventListener('click', async () => {
     map.fitBounds(geojsonLayer.getBounds());
     addLegend(minPop, maxPop);
     setStatus(`${fc.features.length} regions — total ${fmtPop(totalPop)} people (WorldPop ${year})`);
+    showCmdBox(iso, level, source);
 
   } catch (err) {
     // Show the full multi-line error in the status bar, and full detail in console.
