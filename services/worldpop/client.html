@@ -581,9 +581,9 @@ document.getElementById('load-btn').addEventListener('click', async () => {
     const _LARGE_RASTER_ISOS = new Set([
       'BRA','RUS','CAN','USA','CHN','AUS','IND','ARG','KAZ','DZA',
       'COD','SAU','MEX','IDN','SDN','LBY','IRN','MNG','PER','TCD',
-      'ANG','MAL','ETH','MLI','NER','COL','BOL','MRT','EGY','TZA',
+      'AGO','MYS','ETH','MLI','NER','COL','BOL','MRT','EGY','TZA',
     ]);
-    const _MAX_WINDOWED_POLYGONS = 500;
+    const _MAX_WINDOWED_POLYGONS = 150;
     if (_LARGE_RASTER_ISOS.has(iso.toUpperCase()) && fc.features.length > _MAX_WINDOWED_POLYGONS) {
       setStatus(
         `⚠ ${fc.features.length} polygons for ${iso.toUpperCase()} — WorldPop aggregation at this admin level would take many hours in the browser. Use the command below instead.`,
