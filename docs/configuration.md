@@ -110,7 +110,7 @@ simulation:
 
 ### Running with Custom Config
 
-The generated model scripts accept a `--config` option:
+The generated model scripts (`si.py`, `sir.py`, or `seir.py`) accept a `--config` option:
 
 ```shell
 # Use default config.yaml in same directory
@@ -343,7 +343,7 @@ NGA/
 └── 2000/
     ├── NGA_admin2.gpkg          # Geospatial data
     ├── config.yaml              # Run configuration
-    ├── seir.py                  # Model script
+    ├── seir.py                  # Model script by default; may be si.py or sir.py with --model
     ├── plot.py                  # Plotting script
     ├── age_dist.csv             # Demographics
     ├── cxr.csv                  # Birth/death rates
@@ -463,6 +463,8 @@ python3 ./seir.py
 # Or override data directory
 python3 ./seir.py --data-dir /full/path/to/NGA/2000
 ```
+
+If you generated an SI or SIR model, use `python3 ./si.py` or `python3 ./sir.py` for those commands.
 
 ## Next Steps
 

@@ -42,7 +42,7 @@ Once installed, you can run `laser-init` from the command line:
 laser-init NGA 2 2000 2025
 ```
 
-This will create a directory `NGA/2000/` with all necessary data files and a ready-to-run SEIR model script.
+This will create a directory `NGA/2000/` with all necessary data files and a ready-to-run model script. By default this is `seir.py`; use `--model SI` or `--model SIR` to generate `si.py` or `sir.py` instead.
 
 ## Basic Usage
 
@@ -115,11 +115,13 @@ total 12440
 
 - **`config.yaml`**: Configuration file referencing data files and model parameters
 
-- **`seir.py`**: Ready-to-run SEIR model script
+- **Model script**: One of `si.py`, `sir.py`, or `seir.py`, depending on `--model`
+  - Default output: `seir.py`
   - Run with: `python3 ./seir.py` or `python3 ./seir.py --config config.yaml`
+  - If you generated a different model, run `python3 ./si.py` or `python3 ./sir.py` instead
   - Requires `laser.generic` package
 
-- **`plot.py`**: Supporting script, called from `seir.py`, for generating simulation result plots
+- **`plot.py`**: Supporting script, called from the generated model script, for generating simulation result plots
 
 - **Demographic data files**:
   - `age_dist.csv`: Population age distribution for the start year
@@ -146,6 +148,8 @@ laser-init NGA 2 2000 2025 --model SI    # Susceptible-Infectious
 laser-init NGA 2 2000 2025 --model SIR   # Susceptible-Infectious-Recovered
 laser-init NGA 2 2000 2025 --model SEIR  # Susceptible-Exposed-Infectious-Recovered
 ```
+
+This option also determines the generated script name: `si.py`, `sir.py`, or `seir.py`.
 
 - **SI**: Simple model with susceptible and infectious states
 - **SIR**: Adds recovery (immunity) to the model
@@ -257,6 +261,8 @@ cd NGA/2000
 python3 ./seir.py
 ```
 
+If you generated a different model with `--model`, run the matching script instead: `python3 ./si.py` or `python3 ./sir.py`.
+
 The model will:
 1. Load configuration and data from `config.yaml`
 2. Initialize the population across administrative units
@@ -353,7 +359,7 @@ done
 
 The generated model scripts are fully editable Python files. Common modifications:
 
-1. **Change initial seed locations**: Edit the seeding logic in `seir.py`
+1. **Change initial seed locations**: Edit the seeding logic in the generated model script (`si.py`, `sir.py`, or `seir.py`)
 2. **Modify transmission parameters**: Adjust `r0`, `beta`, or duration parameters
 3. **Add interventions**: Insert intervention logic into the model components (see [LASER documentation](https://laser.idmod.org/laser-generic))
 4. **Customize plots**: Modify `plot.py` or import it and call specific plot functions

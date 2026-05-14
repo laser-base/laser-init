@@ -378,17 +378,23 @@ cd KEN/2010
 python3 ./seir.py
 ```
 
+If you generated a different model with `--model`, run `python3 ./si.py` or `python3 ./sir.py` instead.
+
 ### With Custom Config
 
 ```shell
 python3 ./seir.py --config custom_config.yaml
 ```
 
+Use the matching script name here if you generated `si.py` or `sir.py`.
+
 ### With Custom Data Directory
 
 ```shell
 python3 ./seir.py --data-dir /path/to/data
 ```
+
+Use the matching script name here if you generated `si.py` or `sir.py`.
 
 ### Output
 
