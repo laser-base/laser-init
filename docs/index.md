@@ -40,7 +40,7 @@ This creates a complete modeling environment in `NGA/2000/` with:
 
 - GeoPackage with administrative boundaries and population
 - Demographic data files (birth rates, death rates, age distribution)
-- Ready-to-run SEIR model script
+- Ready-to-run model script (`seir.py` by default, or `si.py` / `sir.py` with `--model`)
 - Validation plots and PDF report
 - Configuration file for easy customization
 

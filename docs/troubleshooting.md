@@ -360,9 +360,11 @@ Common issues and solutions when using `laser-init`.
 
 3. **Run with verbose output**:
    ```shell
-   python seir.py --help  # See available options
+   python seir.py --help  # See available options for the default model script
    python seir.py --config config.yaml  # Explicit config
    ```
+
+   If you generated a different model, replace `seir.py` with `si.py` or `sir.py`.
 
 4. **Check Python version**:
    ```shell

@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Clarified model-selection documentation so README and user-facing guides explain that `--model` selects both the epidemiological model and the generated script (`si.py`, `sir.py`, or `seir.py`)
 - Comprehensive documentation overhaul
   - Updated pyproject.toml with proper package description
   - Completely rewrote README.md with installation instructions, prerequisites, troubleshooting, advanced usage, and comprehensive examples

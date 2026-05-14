@@ -89,6 +89,8 @@ cd KEN/2010
 python3 ./seir.py
 ```
 
+If you selected a different model with `--model`, run the matching script instead: `python3 ./si.py` or `python3 ./sir.py`.
+
 The simulation will run and generate output plots showing disease spread across Kenya's districts.
 
 ## Understanding the Workflow
@@ -157,7 +159,7 @@ KEN/
 └── 2010/
     ├── KEN_admin2.gpkg          # Geospatial data (main input)
     ├── config.yaml              # Model configuration
-    ├── seir.py                  # SEIR model script
+    ├── seir.py                  # Model script by default; may be si.py or sir.py with --model
     ├── plot.py                  # Plotting utilities
     ├── age_dist.csv             # Age distribution
     ├── cxr.csv                  # Crude birth/death rates
@@ -310,6 +312,8 @@ python3 ./seir.py
 # Results are saved as PNG files in the current directory
 ```
 
+Use `python3 ./si.py` or `python3 ./sir.py` here if you generated one of those model variants.
+
 ### Workflow 2: Comparing Data Sources
 
 Test different shapefile sources to find the best coverage:
@@ -397,6 +401,8 @@ done
 echo "Parameter sweep complete!"
 ```
 
+If you are sweeping an SI or SIR run, substitute `si.py` or `sir.py` in the copy and execution commands.
+
 ### Workflow 6: Integration with Custom Analysis
 
 Use `laser-init` data in custom scripts:
@@ -438,7 +444,7 @@ print("Custom analysis saved to custom_analysis.png")
 
 ### Understanding Model Outputs
 
-After running the generated model script (e.g., `seir.py`), you'll find several output plots:
+After running the generated model script (for example, `seir.py`), you'll find several output plots:
 
 1. **Stacked Compartments**: Shows S, E, I, R populations over time
    - Look for epidemic peak timing
@@ -512,13 +518,15 @@ Then rerun:
 python3 ./seir.py --config config.yaml
 ```
 
+If you generated `si.py` or `sir.py`, rerun that script instead.
+
 ### Editing Model Scripts
 
-The generated Python3 ./scripts are fully editable. Common modifications:
+The generated model scripts are fully editable. Common modifications:
 
 #### Change Initial Seeding
 
-In `seir.py`, find the seeding logic:
+In the generated model script, find the seeding logic:
 
 ```python
 # Default: Seed largest population center
@@ -547,7 +555,7 @@ scenario.at[seed_idx, "I"] = 100
 #### Modify Transmission Parameters
 
 ```python
-# Location in seir.py
+# Location in the generated model script
 params = PropertySet(config["simulation"])
 
 # Add custom parameters

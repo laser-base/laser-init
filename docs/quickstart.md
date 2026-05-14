@@ -46,7 +46,7 @@ You should see:
 ```text
 NGA_admin2.gpkg          # GeoPackage with boundaries and population
 config.yaml              # Model configuration
-seir.py                  # Ready-to-run SEIR model
+seir.py                  # Ready-to-run model script (default; use --model for si.py or sir.py)
 plot.py                  # Plotting utilities
 age_dist.csv             # Age distribution data
 cxr.csv                  # Birth and death rates
@@ -66,6 +66,8 @@ Execute the generated model:
 ```shell
 python3 ./seir.py
 ```
+
+If you generated a different model with `--model`, run `python3 ./si.py` or `python3 ./sir.py` instead.
 
 The model will:
 
@@ -124,7 +126,7 @@ simulation:
     gravity_c: 2
 ```
 
-### Model Script (seir.py)
+### Model Script (`si.py`, `sir.py`, or `seir.py`)
 
 The generated Python script is fully editable. Common customizations:
 
@@ -237,7 +239,7 @@ If processing fails with memory errors:
 
 ### Model Fails to Run
 
-If `python3 ./seir.py` fails:
+If the generated model script fails:
 
 - Ensure you're in the environment where `laser-init` is installed
 - Check that `laser.generic` is installed: `pip list | grep laser`
