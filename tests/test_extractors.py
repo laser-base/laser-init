@@ -341,6 +341,84 @@ class TestUnochaExtractor:
         assert hasattr(extractor, "extract")
         assert callable(extractor.extract)
 
+    def test_unocha_extract_accepts_correct_parameters(self):
+        """Test that UNOCHA extract accepts country, level, and year.
+
+        Given the extract method signature
+        When checking parameters
+        Then it should accept country (str), level (int), year (int)
+
+        Failure indicates the extract method signature has changed, which would
+        break callers in the CLI pipeline that pass these positional arguments.
+        """
+        from inspect import signature
+
+        sig = signature(unocha.UnochaExtractor.extract)
+        params = list(sig.parameters.keys())
+        assert "country" in params
+        assert "level" in params
+        assert "year" in params
+
+    @patch("laser.init.extractors.unocha.download_file")
+    def test_unocha_extract_uses_repository_url(self, mock_download, tmp_path):
+        """Test that UNOCHA extract downloads per-country/level from the laser-base repo.
+
+        Given valid country and level parameters and a successful download
+        When extract() is called
+        Then it should request the per-country, per-level .gpkg.zstd file from the
+            laser-base/unocha repository and return that path
+
+        Failure indicates the extractor is no longer using the laser-base UNOCHA
+        repository as its primary data source.
+        """
+
+        mock_path = tmp_path / "UNOCHA-SEN-ADM1.gpkg.zstd"
+        mock_path.touch()
+        mock_download.return_value = mock_path
+
+        extractor = unocha.UnochaExtractor()
+        result = extractor.extract("SEN", 1, 2020)
+
+        assert result == mock_path
+        # The URL passed to download_file should point at the laser-base repository
+        # and reference the per-country, per-admin-level GeoPackage file.
+        called_url = mock_download.call_args.args[0]
+        assert "github.com/laser-base/unocha" in called_url
+        assert "data/SEN/UNOCHA-SEN-ADM1.gpkg.zstd" in called_url
+
+    @patch("laser.init.extractors.unocha.download_file")
+    def test_unocha_extract_falls_back_to_global_dataset(self, mock_download, tmp_path):
+        """Test that UNOCHA extract falls back to the global HDX dataset on failure.
+
+        Given the repository download raises an error (country/level unavailable)
+        When extract() is called
+        Then it should fall back to downloading the global HDX geodatabase and
+            return that path
+
+        Failure indicates the legacy global-dataset fallback behavior has been lost,
+        which would prevent extraction for countries not yet in the laser-base repo.
+        """
+
+        fallback_path = tmp_path / "global_admin_boundaries_matched_latest.gdb.zip"
+
+        def download_side_effect(url, *args, **kwargs):
+            # First call (repository) fails; second call (global fallback) succeeds.
+            if "laser-base" in url:
+                raise RuntimeError("404 Not Found")
+            fallback_path.touch()
+            return fallback_path
+
+        mock_download.side_effect = download_side_effect
+
+        extractor = unocha.UnochaExtractor()
+        result = extractor.extract("ZZZ", 1, 2020)
+
+        assert result == fallback_path
+        assert mock_download.call_count == 2
+        # The second (fallback) call should target the HDX global dataset.
+        fallback_url = mock_download.call_args_list[1].args[0]
+        assert "data.humdata.org" in fallback_url
+
 
 class TestWorldPopExtractor:
     """Test suite for WorldPop extractor."""

@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- UNOCHA extractor now downloads per-country, per-administrative-level GeoPackage
+  files (`.gpkg.zstd`) from the laser-base UNOCHA repository
+  (https://github.com/laser-base/unocha), mirroring the GeoBoundaries extractor.
+  The previous behavior (downloading the single global geodatabase from UNOCHA's
+  Humanitarian Data Exchange) is retained as an automatic fallback when a country
+  or level is not available in the repository.
+  - Added extractor tests covering the repository URL, the global-dataset fallback,
+    and the extract signature.
+- UNOCHA transformer now dispatches on the shape file type: it zstd-decompresses and
+  reads the per-country/level `.gpkg.zstd` GeoPackage (layer `UNOCHA-<ISO>-ADM<level>`)
+  from the laser-base repository, and retains the existing global `.gdb.zip`
+  unzip-and-filter logic as the fallback path. Unsupported formats now raise `ValueError`.
+  - Added `zstandard` as an explicit dependency.
+  - Added transformer tests for the repository `.gpkg.zstd` path (real decompression
+    and GeoPackage I/O), the global `.zip` fallback path, unsupported-format rejection,
+    and the transform signature.
+
 ### Added
 - Comprehensive documentation overhaul
   - Updated pyproject.toml with proper package description
