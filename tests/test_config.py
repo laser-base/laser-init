@@ -9,9 +9,10 @@ import json
 import os
 from unittest.mock import patch
 
-import laser.init.config as cfg
 import pytest
 import yaml
+
+import laser.init.config as cfg
 
 
 class TestConfigLoading:
@@ -58,9 +59,7 @@ class TestConfigLoading:
         Per docstring, config loads from ./laser_config.json or ~/.laser/laser_config.json.
         """
         # Create a temporary config file
-        cli_env[
-            "config_file"
-        ].unlink()  # Remove existing config file to force JSON loading
+        cli_env["config_file"].unlink()  # Remove existing config file to force JSON loading
         config_file = cli_env["work_dir"] / "laser_config.json"
 
         # Write test configuration
@@ -178,9 +177,7 @@ class TestConfigFilePrecedence:
         4. ~/.laser/laser_config.json
         """
         # Create config in "current" directory
-        cli_env[
-            "config_file"
-        ].unlink()  # Remove existing YAML config to force JSON loading
+        cli_env["config_file"].unlink()  # Remove existing YAML config to force JSON loading
         selected_config = cli_env["work_dir"] / "laser_config.json"
         selected_config.write_text(json.dumps({"shape_source": "local_json_source"}))
 
@@ -218,9 +215,7 @@ class TestConfigErrorHandling:
         Failure indicates JSON error handling has changed.
         Note: Per docstring, config module should handle json.JSONDecodeError.
         """
-        cli_env[
-            "config_file"
-        ].unlink()  # Remove existing config file to force JSON loading
+        cli_env["config_file"].unlink()  # Remove existing config file to force JSON loading
         config_file = cli_env["work_dir"] / "laser_config.json"
         # Create invalid JSON with trailing comma
         config_file.write_text('{"cache_dir": "/tmp",}')

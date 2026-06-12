@@ -8,15 +8,38 @@ packages = ["src/laser"]
 [tool.uv]
 package = true
 
-[tool.uv.sources]
-rastertoolkit = { git = "https://github.com/institutefordiseasemodeling/rastertoolkit", rev = "v0.4.9" }
-
 [project]
 name = "laser-init"
 version = "0.1.0"
 description = "A tool to bootstrap spatial epidemiological modeling with LASER by preparing geospatial, population, and demographic data"
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Institute for Disease Modeling" },
+]
+keywords = [
+    "epidemiology",
+    "spatial modeling",
+    "geospatial",
+    "LASER",
+    "disease modeling",
+    "demographics",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: GIS",
+]
 dependencies = [
     "anthropic>=0.84.0",
     "click>=8.3.1",
@@ -29,7 +52,7 @@ dependencies = [
     "pyogrio>=0.12.1",
     "pyyaml>=6.0.3",
     "rapidfuzz>=3.14.3",
-    "rastertoolkit",
+    "rastertoolkit>=0.4.9",
     "requests>=2.32.5",
     "tqdm>=4.67.3",
     "zstandard>=0.25.0",
@@ -47,12 +70,28 @@ dev = [
     "ruff>=0.15.5",
 ]
 
+[project.urls]
+Homepage = "https://laser-base.github.io/laser-init"
+Documentation = "https://laser-base.github.io/laser-init"
+Repository = "https://github.com/laser-base/laser-init"
+Changelog = "https://github.com/laser-base/laser-init/blob/main/CHANGELOG.md"
+
 [project.scripts]
 laser-init = "laser.init.cli:cli"
 
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "dist",
+    "build",
+    "*.egg-info",
+]
+
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -62,17 +101,11 @@ select = [
     "C4",  # flake8-comprehensions
     "UP",  # pyupgrade
 ]
-ignore = []
+# E501 (line-too-long) is intentionally not enforced: `ruff format` owns line
+# wrapping and deliberately leaves long URLs and log/message strings intact.
+ignore = ["E501"]
 fixable = ["ALL"]
 unfixable = []
-exclude = [
-    ".git",
-    ".venv",
-    "__pycache__",
-    "dist",
-    "build",
-    "*.egg-info",
-]
 
 [tool.ruff.format]
 quote-style = "double"
