@@ -4,9 +4,11 @@ This module tests data transformation functionality that processes raw extracted
 data into model-ready formats.
 """
 
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from laser.init.transformers import gadm, geoboundaries, unocha, unwpp
 
 
@@ -40,7 +42,7 @@ class TestTransformerInterfaces:
             gadm.GadmTransformer(),
             geoboundaries.GeoBoundariesTransformer(),
             unocha.UnochaTransformer(),
-            unwpp.UnwppTransformer()
+            unwpp.UnwppTransformer(),
         ]
         assert len(transformers) == 4
 
@@ -57,7 +59,7 @@ class TestTransformerInterfaces:
             gadm.GadmTransformer(),
             geoboundaries.GeoBoundariesTransformer(),
             unocha.UnochaTransformer(),
-            unwpp.UnwppTransformer()
+            unwpp.UnwppTransformer(),
         ]
 
         for transformer in transformers:
@@ -80,7 +82,7 @@ class TestTransformerInterfaces:
             gadm.GadmTransformer(),
             geoboundaries.GeoBoundariesTransformer(),
             unocha.UnochaTransformer(),
-            unwpp.UnwppTransformer()
+            unwpp.UnwppTransformer(),
         ]
 
         for transformer in transformers:
@@ -144,8 +146,6 @@ class TestTransformerDescriptions:
         assert "unwpp" in description.lower() or "UNWPP" in description or "UN WPP" in description
 
 
-
-
 class TestGadmTransformer:
     """Test suite for GADM transformer functional tests."""
 
@@ -167,6 +167,7 @@ class TestGadmTransformer:
         Raises ValueError if shape_file format is unsupported.
         """
         from inspect import signature
+
         sig = signature(gadm.GadmTransformer.transform)
         params = list(sig.parameters.keys())
         assert "shape_file" in params
@@ -200,7 +201,9 @@ class TestGadmTransformer:
         # Mock geodataframe with required structure
         mock_gdf = MagicMock()
         mock_gdf.__len__ = MagicMock(return_value=2)
-        mock_gdf.__iter__ = MagicMock(return_value=iter([{"geometry": MagicMock()}, {"geometry": MagicMock()}]))
+        mock_gdf.__iter__ = MagicMock(
+            return_value=iter([{"geometry": MagicMock()}, {"geometry": MagicMock()}])
+        )
         mock_gdf.to_file = MagicMock()
         mock_read.return_value = mock_gdf
 
@@ -240,6 +243,7 @@ class TestGeoBoundariesTransformer:
         and saves as GeoPackage file.
         """
         from inspect import signature
+
         sig = signature(geoboundaries.GeoBoundariesTransformer.transform)
         params = list(sig.parameters.keys())
         assert "shape_file" in params
@@ -263,7 +267,9 @@ class TestGeoBoundariesTransformer:
         # Mock geodataframe with required structure
         mock_gdf = MagicMock()
         mock_gdf.__len__ = MagicMock(return_value=2)
-        mock_gdf.__iter__ = MagicMock(return_value=iter([{"geometry": MagicMock()}, {"geometry": MagicMock()}]))
+        mock_gdf.__iter__ = MagicMock(
+            return_value=iter([{"geometry": MagicMock()}, {"geometry": MagicMock()}])
+        )
         mock_gdf.to_file = MagicMock()
         mock_read.return_value = mock_gdf
 
@@ -494,6 +500,7 @@ class TestUnwppTransformer:
         - Life expectancy (cumulative deaths for survival) at start_year
         """
         from inspect import signature
+
         sig = signature(unwpp.UnwppTransformer.transform)
         params = list(sig.parameters.keys())
         assert "stats_data" in params
@@ -519,6 +526,7 @@ class TestUnwppTransformer:
         cache directory structure, so we validate the signature here.
         """
         from inspect import signature
+
         sig = signature(unwpp.UnwppTransformer.transform)
 
         # Check that return annotation indicates tuple

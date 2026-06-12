@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from laser.init.extractors import gadm, geoboundaries, unocha, unwpp, worldpop
 
 
@@ -137,7 +138,7 @@ class TestGadmExtractor:
         mock_download.side_effect = [None, zip_path]
 
         extractor = gadm.GadmExtractor()
-        result = extractor.extract("NGA", 2, 2020)
+        extractor.extract("NGA", 2, 2020)
 
         # Should try both formats
         assert mock_download.call_count >= 1
@@ -518,7 +519,7 @@ class TestWorldPopExtractor:
         mock_download.return_value = mock_path
 
         extractor = worldpop.WorldPopExtractor()
-        result = extractor.extract("NGA", 2010)
+        extractor.extract("NGA", 2010)
 
         # Verify download_file was called
         mock_download.assert_called_once()
@@ -543,7 +544,7 @@ class TestWorldPopExtractor:
         mock_download.return_value = mock_path
 
         extractor = worldpop.WorldPopExtractor()
-        result = extractor.extract("NGA", 2020)
+        extractor.extract("NGA", 2020)
 
         # Verify download_file was called
         mock_download.assert_called_once()
@@ -567,7 +568,7 @@ class TestWorldPopExtractor:
         mock_download.return_value = mock_path
 
         extractor = worldpop.WorldPopExtractor()
-        result = extractor.extract("NGA", 2014)
+        extractor.extract("NGA", 2014)
 
         mock_download.assert_called_once()
         call_args = mock_download.call_args
@@ -589,7 +590,7 @@ class TestWorldPopExtractor:
         mock_download.return_value = mock_path
 
         extractor = worldpop.WorldPopExtractor()
-        result = extractor.extract("NGA", 2015)
+        extractor.extract("NGA", 2015)
 
         mock_download.assert_called_once()
         call_args = mock_download.call_args
@@ -731,11 +732,7 @@ class TestUnwppExtractor:
         description = extractor.description()
         assert isinstance(description, str)
         assert len(description) > 0
-        assert (
-            "UNWPP" in description
-            or "unwpp" in description.lower()
-            or "UN WPP" in description
-        )
+        assert "UNWPP" in description or "unwpp" in description.lower() or "UN WPP" in description
 
     def test_unwpp_extractor_has_extract_method(self):
         """Test that UN WPP extractor has extract method.
@@ -862,5 +859,3 @@ class TestExtractorCaching:
             unwpp.UnwppExtractor(),
         ]
         assert len(extractors) == 5
-
-

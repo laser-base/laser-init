@@ -4,8 +4,7 @@ This module tests model template generation for SI, SIR, and SEIR
 epidemiological models.
 """
 
-import pytest
-from laser.init.models import si, sir, seir, plot
+from laser.init.models import plot, seir, si, sir
 
 
 class TestModelModulesExist:

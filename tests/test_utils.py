@@ -9,6 +9,8 @@ import json
 from unittest.mock import Mock, patch
 
 import pytest
+import requests
+
 from laser.init import utils
 
 
@@ -90,15 +92,13 @@ class TestIsoFromCountryString:
             assert result is None  # Allow for fuzzy match or no match
 
         # Check for warning with possible matches.
-        assert (
-            str(record[0].message) == "Possible match(es):\n\tUnited Kingdom (ISO: GBR)"
-        )
+        assert str(record[0].message) == "Possible match(es):\n\tUnited Kingdom (ISO: GBR)"
 
         # Check for no matches message.
         captured = capsys.readouterr()
-        assert (
-            "iso_from_country_string(): No matches found for 'England'" in captured.out
-        ), "stderr should contain 'No matches found for 'England''"
+        assert "iso_from_country_string(): No matches found for 'England'" in captured.out, (
+            "stderr should contain 'No matches found for 'England''"
+        )
 
     def test_invalid_country_returns_none(self):
         """Test that invalid country names return None.
@@ -313,7 +313,7 @@ class TestDownloadFile:
         # Setup mock response with 404
         mock_response = Mock()
         mock_response.status_code = 404
-        mock_response.raise_for_status.side_effect = Exception("404 Not Found")
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("404 Not Found")
         mock_get.return_value = mock_response
 
         # Test that error is raised
@@ -322,7 +322,7 @@ class TestDownloadFile:
         cache_dir.mkdir()
         dest_dir = tmp_path / "downloads"
         dest_dir.mkdir()
-        with pytest.raises(Exception):
+        with pytest.raises(requests.exceptions.HTTPError):
             utils.download_file(url, cache_dir, dest_dir)
 
 
@@ -403,9 +403,7 @@ class TestProvenanceTracking:
         # Add new file
         new_file = cache_root / "new_file.txt"
         new_file.write_text("new content")
-        utils.update_cache_provenance(
-            cache_root, new_file, "https://example.com/new.txt"
-        )
+        utils.update_cache_provenance(cache_root, new_file, "https://example.com/new.txt")
 
         # Verify both entries exist
         with open(provenance_file) as f:
@@ -461,8 +459,7 @@ class TestInformAndError:
         captured = capsys.readouterr()
         # The output may go to stdout or stderr, check both
         assert (
-            "Test information message" in captured.out
-            or "Test information message" in captured.err
+            "Test information message" in captured.out or "Test information message" in captured.err
         )
 
     def test_error_raises_runtime_error(self):

@@ -31,7 +31,10 @@ help = """
 Download spatial data for modeling diseases across populations and prepare for use with a LASER model.
 E.g., laser-init NGA ADM2 2010 2025
 """
-__MIN_YEAR__ = 1950
+# Lower bound of 2000 reflects the earliest year supported by the data sources
+# (WorldPop population rasters begin at 2000); years before this are rejected by
+# the CLI rather than failing later during extraction.
+__MIN_YEAR__ = 2000
 __MAX_YEAR__ = 2100
 
 
@@ -102,8 +105,8 @@ def cli(
     Args:
         country: Country name or ISO 3166-1 alpha-3 code (e.g., "Nigeria" or "NGA").
         level: Administrative level as string (e.g., "ADM1", "admin2", "3").
-        start_year: Base year for simulation (1950-2100, must be <= end_year).
-        end_year: End year for simulation (1950-2100, must be >= start_year).
+        start_year: Base year for simulation (2000-2100, must be <= end_year).
+        end_year: End year for simulation (2000-2100, must be >= start_year).
         output_dir: Output directory path. If None, defaults to "./ISOCODE/start_year".
         mode: Modeling mode, either "ABM" (agent-based model) or "MPM" (metapopulation model).
         model: Epidemiological model type - "SI", "SIR", or "SEIR".
@@ -125,8 +128,8 @@ def cli(
         click.exceptions.Exit: If any validation fails:
             - Invalid country code or ISO-3 code cannot be determined
             - Invalid administrative level format
-            - Start year out of range (< 1900 or > current year)
-            - End year out of range (< start_year or > current year)
+            - Start year out of range (< 2000 or > 2100)
+            - End year out of range (< start_year or > 2100)
             - Invalid shape_source, raster_source, or stats_source
         RuntimeError: If data extraction or transformation fails:
             - Shape file cannot be read during plotting
