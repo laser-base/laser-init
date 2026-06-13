@@ -12,16 +12,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
 
-from laser.init.extractors import gadm as gadmex
-from laser.init.extractors import geoboundaries as geoboundariesex
-from laser.init.extractors import unocha as unochaex
-from laser.init.extractors import unwpp as unwppex
-from laser.init.extractors import worldpop as worldpopex
-from laser.init.loaders import abm, mpm
-from laser.init.transformers import gadm as gadmtx
-from laser.init.transformers import geoboundaries as geoboundariestx
-from laser.init.transformers import unocha as unochatx
-from laser.init.transformers import unwpp as unwpptx
+from laser.init import registry
 
 from .config import VERSION
 from .config import configuration as config
@@ -262,16 +253,9 @@ def download_shape_data(iso_code: str, adm_level: int, start_year: int, shape_so
 
     shape_source = (shape_source or config.get("shape_source", "unocha")).lower()
     try:
-        shape_extractor = {
-            "unocha": unochaex.UnochaExtractor,
-            "geoboundaries": geoboundariesex.GeoBoundariesExtractor,
-            "gadm": gadmex.GadmExtractor,
-        }[shape_source]()
-    except KeyError:
-        error(
-            f"Invalid shape source '{shape_source}'. Valid options are: unocha, geoboundaries, gadm.",
-            click.exceptions.Exit(1),
-        )
+        shape_extractor = registry.get_shape_source(shape_source).extractor()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     inform(f"Using shape source: {shape_source} ({shape_extractor.description()})")
 
@@ -295,14 +279,9 @@ def download_raster_data(iso_code: str, start_year: int, raster_source: str) -> 
 
     raster_source = (raster_source or config.get("raster_source", "worldpop")).lower()
     try:
-        raster_extractor = {
-            "worldpop": worldpopex.WorldPopExtractor,
-        }[raster_source]()
-    except KeyError:
-        error(
-            f"Invalid raster source '{raster_source}'. Valid options are: worldpop.",
-            click.exceptions.Exit(1),
-        )
+        raster_extractor = registry.get_raster_extractor(raster_source)()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     inform(f"Using raster source: {raster_source} ({raster_extractor.description()})")
 
@@ -330,14 +309,9 @@ def download_demographic_stats(
     stats_source = (stats_source or config.get("stats_source", "unwpp")).lower()
 
     try:
-        stats_extractor = {
-            "unwpp": unwppex.UnwppExtractor,
-        }[stats_source]()
-    except KeyError:
-        error(
-            f"Invalid demographic stats source '{stats_source}'. Valid options are: unwpp.",
-            click.exceptions.Exit(1),
-        )
+        stats_extractor = registry.get_stats_source(stats_source).extractor()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     inform(f"Using demographic stats source: UNWPP ({stats_extractor.description()})")
 
@@ -373,11 +347,10 @@ def transform_shape_and_raster_data(
     """
 
     shape_source = (shape_source or config.get("shape_source", "unocha")).lower()
-    shape_transformer = {
-        "unocha": unochatx.UnochaTransformer,
-        "geoboundaries": geoboundariestx.GeoBoundariesTransformer,
-        "gadm": gadmtx.GadmTransformer,
-    }[shape_source]()
+    try:
+        shape_transformer = registry.get_shape_source(shape_source).transformer()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     inform(f"Using shape transformer: {shape_source} ({shape_transformer.description()})")
 
@@ -414,10 +387,10 @@ def transform_stats_data(
         KeyError: If the specified stats_source is not found in the available transformers.
     """
     stats_source = (stats_source or config.get("stats_source", "unwpp")).lower()
-    stats_transformer = {
-        "unwpp": unwpptx.UnwppTransformer,
-        # Add other stats transformers here as needed
-    }[stats_source]()
+    try:
+        stats_transformer = registry.get_stats_source(stats_source).transformer()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     inform(
         f"Using demographic stats transformer: {stats_source} ({stats_transformer.description()})"
@@ -457,14 +430,12 @@ def emit_model_script(
     inform(f"Population age distribution file: '{pop_filename}'")
     inform(f"Life expectancy file:             '{exp_filename}'")
 
-    model_loader = {
-        "ABM/SI": abm.AbmLoader,
-        "ABM/SIR": abm.AbmLoader,
-        "ABM/SEIR": abm.AbmLoader,
-        "MPM/SI": mpm.MpmLoader,
-        "MPM/SIR": mpm.MpmLoader,
-        "MPM/SEIR": mpm.MpmLoader,
-    }[f"{mode.upper()}/{model.upper()}"]()
+    # The loader is selected by modeling mode (ABM/MPM); the model type (SI/SIR/SEIR)
+    # is passed through to the loader rather than selecting a different class.
+    try:
+        model_loader = registry.get_model_loader(mode)()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     model_loader.emit_script(
         mode, model, shapes_filename, cxr_filename, pop_filename, exp_filename, output_dir

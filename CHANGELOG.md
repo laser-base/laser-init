@@ -39,6 +39,15 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Continuous integration workflow (`.github/workflows/ci.yml`): a lint/format job on
   Python 3.12 and a test job matrix on Python 3.10 and 3.14.
+- Pipeline component interfaces and a central registry:
+  - `laser.init.interfaces` defines `typing.Protocol` contracts for each component
+    family (shape/raster/stats extractors, shape/stats transformers, model loaders).
+  - `laser.init.registry` is now the single source of truth mapping source/mode names
+    to component classes; the CLI dispatches through it instead of repeating literal
+    `{name: Class}` dictionaries at six call sites, so a shape source's extractor and
+    transformer can no longer drift apart.
+  - Added `tests/test_registry.py`: Protocol conformance for every registered
+    component, registry/CLI option consistency, and lookup/error behavior.
 - Comprehensive documentation overhaul
   - Updated pyproject.toml with proper package description
   - Completely rewrote README.md with installation instructions, prerequisites, troubleshooting, advanced usage, and comprehensive examples
