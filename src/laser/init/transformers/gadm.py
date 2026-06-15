@@ -4,6 +4,7 @@ We will filter the data by country and administrative level, and ensure that it 
 format for loading into our database.
 """
 
+import tempfile
 from pathlib import Path
 
 import geopandas as gpd
@@ -52,9 +53,9 @@ class GadmTransformer:
             ValueError: If shape_file format is unsupported.
         """
 
+        layer = f"gadm41_{iso_code.upper()}_{adm_level}"
         if shape_file.suffix == ".zip":
             inform(f"Processing GADM shape file from zip archive: {shape_file}")
-            shape_filepath = shape_file / f"gadm41_{iso_code.upper()}_{adm_level}.shp"
         elif shape_file.suffix == ".gpkg":
             inform(f"Shape file is not a zip archive, proceeding with {shape_file}")
             raise NotImplementedError(
@@ -63,13 +64,12 @@ class GadmTransformer:
         else:
             error(f"Unsupported shape file format: {shape_file.suffix}", ValueError)
 
-        inform(
-            f"Loading GADM data from {shape_file} layer gadm41_{iso_code.upper()}_{adm_level}..."
-        )
-        gdf = gpd.read_file(shape_file, layer=f"gadm41_{iso_code.upper()}_{adm_level}")
+        # geopandas/pyogrio reads the named shapefile layer directly from the zip archive.
+        inform(f"Loading GADM data from {shape_file} layer {layer}...")
+        gdf = gpd.read_file(shape_file, layer=layer)
         names = [f"NAME_{i}" for i in range(1, adm_level + 1)]
         gid = f"GID_{adm_level}"
-        gdf = gdf[names + [gid, "geometry"]]
+        gdf = gdf[names + [gid, "geometry"]].copy()
 
         # Ensure "nodeid" and "name" columns
         gdf["nodeid"] = list(range(len(gdf)))
@@ -80,8 +80,15 @@ class GadmTransformer:
         else:
             gdf["name"] = gdf.NAME_3.astype(str) + ":" + gdf.NAME_4.astype(str)
 
-        pop_dict = clip_quietly(raster_file, shape_filepath, shape_attr=gid)
-        gdf["population"] = gdf[gid].map(pop_dict)
+        # RasterToolkit needs a real shapefile path; the layer inside the zip is not a
+        # usable filesystem path, so write the filtered frame to a temporary shapefile
+        # and clip that (mirroring the UNOCHA transformer).
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_shapefile = Path(tmpdir) / f"{iso_code}_admin{adm_level}.shp"
+            gdf.to_file(tmp_shapefile, driver="ESRI Shapefile", engine="pyogrio")
+            inform(f"Wrote temporary shapefile: {tmp_shapefile}")
+            pop_dict = clip_quietly(raster_file, tmp_shapefile, shape_attr=gid)
+            gdf["population"] = gdf[gid].map(pop_dict)
 
         output_filename = output_dir / f"{iso_code}_admin{adm_level}.gpkg"
         gdf.to_file(output_filename, driver="GPKG")

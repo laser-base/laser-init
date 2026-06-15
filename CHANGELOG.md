@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- GADM transformer: clip a temporary standalone shapefile instead of an invalid
+  path constructed inside the `.zip` archive (`shape_file / "gadm41_…shp"`, which
+  never existed on disk), so `raster_clip` receives a real file. The zip layer is
+  still read directly via geopandas; only the clip input path was broken. Added
+  real-fixture tests (zipped shapefile, no mocked reads) covering the clip path and
+  the admin-level-0/4 naming branches.
+
 ### Changed
 - Switched the build backend from Hatchling to the uv build backend (`uv_build`):
   updated `[build-system]` and replaced `[tool.hatch.build.targets.wheel]` with
