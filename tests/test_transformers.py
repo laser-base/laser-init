@@ -146,6 +146,48 @@ class TestTransformerDescriptions:
         assert "unwpp" in description.lower() or "UNWPP" in description or "UN WPP" in description
 
 
+def _build_gadm_zip(tmp_path, iso, level, gids, names_by_level):
+    """Build a GADM-style zip containing the shapefile layer gadm41_<ISO>_<level>.
+
+    Mirrors the real GADM shapefile archive layout (a zip of .shp/.dbf/.shx/... parts)
+    so transformer tests exercise the real zip-reading and clipping code paths rather
+    than mocks.
+
+    Args:
+        tmp_path: pytest tmp_path directory to build in.
+        iso: ISO-3 code used in the layer name and GID_0 column.
+        level: Administrative level for the layer (e.g. 1).
+        gids: List of GID_<level> values (one per feature).
+        names_by_level: Mapping of level number to its NAME_<n> column values.
+
+    Returns:
+        Path to the created gadm41_<ISO>_shp.zip archive.
+    """
+    import zipfile
+
+    import geopandas as gpd
+    from shapely.geometry import Polygon
+
+    n = len(gids)
+    data = {"GID_0": [iso] * n}
+    for lvl, values in names_by_level.items():
+        data[f"NAME_{lvl}"] = values
+    data[f"GID_{level}"] = gids
+    geoms = [Polygon([(i, 0), (i + 1, 0), (i + 1, 1), (i, 1)]) for i in range(n)]
+    gdf = gpd.GeoDataFrame({**data, "geometry": geoms}, crs="EPSG:4326")
+
+    build_dir = tmp_path / "gadm_src"
+    build_dir.mkdir(exist_ok=True)
+    shp = build_dir / f"gadm41_{iso}_{level}.shp"
+    gdf.to_file(shp, driver="ESRI Shapefile", engine="pyogrio")
+
+    zip_path = tmp_path / f"gadm41_{iso}_shp.zip"
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        for part in build_dir.glob(f"gadm41_{iso}_{level}.*"):
+            zf.write(part, part.name)
+    return zip_path
+
+
 class TestGadmTransformer:
     """Test suite for GADM transformer functional tests."""
 
@@ -225,6 +267,161 @@ class TestGadmTransformer:
 
         # Result should be a Path
         assert isinstance(result, Path)
+
+    @patch("laser.init.transformers.gadm.update_local_provenance")
+    @patch("laser.init.transformers.gadm.clip_quietly")
+    def test_gadm_transform_reads_zip_and_clips_real_shapefile(
+        self, mock_clip, mock_prov, tmp_path
+    ):
+        """Test that GADM transform reads the zipped shapefile and clips a real .shp.
+
+        Given a real GADM-style zip archive with a single admin-level layer
+        When transform() is called
+        Then it reads the layer directly from the zip, hands clip_quietly an existing
+            standalone shapefile (keyed by the GID column), and writes an output
+            GeoPackage with name/nodeid/population columns
+
+        Failure indicates a regression of the fix that replaced the invalid in-zip
+        clip path with a temporary standalone shapefile. The raster clip itself is
+        mocked (it is an external RasterToolkit call); everything else is real.
+        """
+        import geopandas as gpd
+
+        zip_path = _build_gadm_zip(
+            tmp_path,
+            "TST",
+            1,
+            gids=["TST.1_1", "TST.2_1"],
+            names_by_level={1: ["Region A", "Region B"]},
+        )
+
+        captured = {}
+
+        def clip_side_effect(raster, shapefile, shape_attr):
+            captured["exists"] = Path(shapefile).exists()
+            captured["suffix"] = Path(shapefile).suffix
+            captured["shape_attr"] = shape_attr
+            return {"TST.1_1": 100.0, "TST.2_1": 200.0}
+
+        mock_clip.side_effect = clip_side_effect
+        mock_prov.return_value = None
+
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        output_dir = tmp_path / "out"
+        output_dir.mkdir()
+
+        result = gadm.GadmTransformer().transform(zip_path, "TST", 1, raster_file, output_dir)
+
+        # The fix must hand clip_quietly a real, existing standalone .shp.
+        assert captured["exists"], "clip_quietly must receive a shapefile that exists on disk"
+        assert captured["suffix"] == ".shp"
+        assert captured["shape_attr"] == "GID_1"
+
+        assert result.exists()
+        out = gpd.read_file(result)
+        assert {"name", "nodeid", "population"} <= set(out.columns)
+        assert set(out["population"]) == {100.0, 200.0}
+        assert set(out["name"]) == {"Region A", "Region B"}
+
+    @patch("laser.init.transformers.gadm.update_local_provenance")
+    @patch("laser.init.transformers.gadm.clip_quietly")
+    def test_gadm_transform_adm_level_0_uses_gid_0_as_name(self, mock_clip, mock_prov, tmp_path):
+        """Test that GADM transform at admin level 0 derives name from GID_0.
+
+        Given a level-0 GADM zip (country outline, GID_0 only)
+        When transform() is called with adm_level=0
+        Then the output "name" column is taken from GID_0
+
+        Failure indicates the adm_level==0 naming branch has regressed.
+        """
+        import geopandas as gpd
+
+        zip_path = _build_gadm_zip(tmp_path, "TST", 0, gids=["TST"], names_by_level={})
+        mock_clip.return_value = {"TST": 5000.0}
+        mock_prov.return_value = None
+
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        output_dir = tmp_path / "out"
+        output_dir.mkdir()
+
+        result = gadm.GadmTransformer().transform(zip_path, "TST", 0, raster_file, output_dir)
+
+        out = gpd.read_file(result)
+        assert list(out["name"]) == ["TST"]
+        assert list(out["population"]) == [5000.0]
+
+    @patch("laser.init.transformers.gadm.update_local_provenance")
+    @patch("laser.init.transformers.gadm.clip_quietly")
+    def test_gadm_transform_adm_level_4_concatenates_names(self, mock_clip, mock_prov, tmp_path):
+        """Test that GADM transform at admin level 4 builds name from NAME_3:NAME_4.
+
+        Given a level-4 GADM zip
+        When transform() is called with adm_level=4
+        Then the output "name" column is "<NAME_3>:<NAME_4>"
+
+        Failure indicates the adm_level>=4 naming branch has regressed.
+        """
+        import geopandas as gpd
+
+        zip_path = _build_gadm_zip(
+            tmp_path,
+            "TST",
+            4,
+            gids=["TST.1.1.1.1_1"],
+            names_by_level={1: ["A"], 2: ["B"], 3: ["C"], 4: ["D"]},
+        )
+        mock_clip.return_value = {"TST.1.1.1.1_1": 42.0}
+        mock_prov.return_value = None
+
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        output_dir = tmp_path / "out"
+        output_dir.mkdir()
+
+        result = gadm.GadmTransformer().transform(zip_path, "TST", 4, raster_file, output_dir)
+
+        out = gpd.read_file(result)
+        assert list(out["name"]) == ["C:D"]
+
+    def test_gadm_transform_gpkg_raises_not_implemented(self, tmp_path):
+        """Test that GADM transform rejects GeoPackage input.
+
+        Given a .gpkg shape file
+        When transform() is called
+        Then NotImplementedError is raised (GeoPackage GADM input is not yet supported)
+
+        Failure indicates the unsupported-format guard for .gpkg has changed.
+        """
+        shape_file = tmp_path / "gadm41_TST.gpkg"
+        shape_file.touch()
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        output_dir = tmp_path / "out"
+        output_dir.mkdir()
+
+        with pytest.raises(NotImplementedError):
+            gadm.GadmTransformer().transform(shape_file, "TST", 1, raster_file, output_dir)
+
+    def test_gadm_transform_unsupported_format_raises_value_error(self, tmp_path):
+        """Test that GADM transform rejects unsupported shape file formats.
+
+        Given a shape file that is neither .zip nor .gpkg
+        When transform() is called
+        Then ValueError is raised
+
+        Failure indicates the unsupported-format guard has changed.
+        """
+        shape_file = tmp_path / "boundaries.geojson"
+        shape_file.touch()
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        output_dir = tmp_path / "out"
+        output_dir.mkdir()
+
+        with pytest.raises(ValueError):
+            gadm.GadmTransformer().transform(shape_file, "TST", 1, raster_file, output_dir)
 
 
 class TestGeoBoundariesTransformer:
