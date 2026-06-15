@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- Switched the build backend from Hatchling to the uv build backend (`uv_build`):
+  updated `[build-system]` and replaced `[tool.hatch.build.targets.wheel]` with
+  `[tool.uv.build-backend]` configured for the `laser.init` namespace package under
+  `src/` (and excluding `.DS_Store` from distributions). Regenerated `uv.lock`.
 - Consolidated all pytest and coverage configuration into `pyproject.toml`
   (`[tool.pytest.ini_options]`) and removed `pytest.ini`, eliminating the
   duplicate/conflicting test config. The authoritative settings (full `addopts`
