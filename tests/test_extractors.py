@@ -210,6 +210,48 @@ class TestGadmExtractor:
         # Verify download_file was called
         assert mock_download.called
 
+    @patch("laser.init.extractors.gadm.download_file")
+    def test_gadm_extract_falls_back_to_geopackage(self, mock_download, tmp_path, monkeypatch):
+        """Test that GADM falls back to GeoPackage when the shapefile download errors.
+
+        Given the shapefile (.zip) download raises but the GeoPackage download succeeds
+        When extract() is called
+        Then it tries both and returns the GeoPackage path
+
+        Failure indicates the shapefile->geopackage fallback path has regressed.
+        """
+        monkeypatch.setitem(gadm.config, "cache_dir", str(tmp_path))
+        gpkg_path = tmp_path / "gadm41_NGA.gpkg"
+
+        def side_effect(url, *args, **kwargs):
+            if "/shp/" in url:
+                raise RuntimeError("404 Not Found")
+            gpkg_path.touch()
+            return gpkg_path
+
+        mock_download.side_effect = side_effect
+
+        result = gadm.GadmExtractor().extract("NGA", 2, 2020)
+
+        assert result == gpkg_path
+        assert mock_download.call_count == 2
+
+    @patch("laser.init.extractors.gadm.download_file")
+    def test_gadm_extract_both_formats_fail_raises(self, mock_download, tmp_path, monkeypatch):
+        """Test that GADM raises RuntimeError when both formats fail to download.
+
+        Given both the shapefile and GeoPackage downloads raise
+        When extract() is called
+        Then RuntimeError is raised
+
+        Failure indicates the both-formats-failed error path has regressed.
+        """
+        monkeypatch.setitem(gadm.config, "cache_dir", str(tmp_path))
+        mock_download.side_effect = RuntimeError("404 Not Found")
+
+        with pytest.raises(RuntimeError):
+            gadm.GadmExtractor().extract("NGA", 2, 2020)
+
 
 class TestGeoBoundariesExtractor:
     """Test suite for geoBoundaries extractor."""
@@ -787,6 +829,77 @@ class TestUnwppExtractor:
 
         with pytest.raises(ValueError):
             extractor.extract("NGA", 2000, 2101)  # end_year too late
+
+    @patch("laser.init.extractors.unwpp.download_file")
+    def test_unwpp_age_distribution_failure_raises(self, mock_download, tmp_path, monkeypatch):
+        """Test that a failed age-distribution download raises RuntimeError.
+
+        Given the first (age distribution) download raises
+        When extract() is called
+        Then RuntimeError is raised
+
+        Failure indicates the age-distribution download error path has regressed.
+        """
+        monkeypatch.setitem(unwpp.config, "cache_dir", str(tmp_path))
+        mock_download.side_effect = RuntimeError("boom")
+
+        with pytest.raises(RuntimeError):
+            unwpp.UnwppExtractor().extract("NGA", 2000, 2025)
+
+    @patch("laser.init.extractors.unwpp.download_file")
+    def test_unwpp_indicators_failure_raises(self, mock_download, tmp_path, monkeypatch):
+        """Test that a failed demographic-indicators download raises RuntimeError.
+
+        Given the second (demographic indicators) download raises
+        When extract() is called
+        Then RuntimeError is raised
+
+        Failure indicates the demographic-indicators download error path has regressed.
+        """
+        monkeypatch.setitem(unwpp.config, "cache_dir", str(tmp_path))
+        dist = tmp_path / "dist.csv.gz"
+        dist.touch()
+        mock_download.side_effect = [dist, RuntimeError("boom")]
+
+        with pytest.raises(RuntimeError):
+            unwpp.UnwppExtractor().extract("NGA", 2000, 2025)
+
+    @patch("laser.init.extractors.unwpp.download_file")
+    def test_unwpp_life_table_1950_2023_failure_raises(self, mock_download, tmp_path, monkeypatch):
+        """Test that a failed 1950-2023 life-table download raises RuntimeError.
+
+        Given start_year <= 2023 and the third (1950-2023 life table) download raises
+        When extract() is called
+        Then RuntimeError is raised
+
+        Failure indicates the 1950-2023 life-table download error path has regressed.
+        """
+        monkeypatch.setitem(unwpp.config, "cache_dir", str(tmp_path))
+        ok = tmp_path / "ok.csv.gz"
+        ok.touch()
+        mock_download.side_effect = [ok, ok, RuntimeError("boom")]
+
+        with pytest.raises(RuntimeError):
+            unwpp.UnwppExtractor().extract("NGA", 2000, 2010)
+
+    @patch("laser.init.extractors.unwpp.download_file")
+    def test_unwpp_life_table_2024_2100_failure_raises(self, mock_download, tmp_path, monkeypatch):
+        """Test that a failed 2024-2100 life-table download raises RuntimeError.
+
+        Given start_year >= 2024 (so the 1950-2023 table is skipped) and the
+            2024-2100 life-table download raises
+        When extract() is called
+        Then RuntimeError is raised
+
+        Failure indicates the 2024-2100 life-table download error path has regressed.
+        """
+        monkeypatch.setitem(unwpp.config, "cache_dir", str(tmp_path))
+        ok = tmp_path / "ok.csv.gz"
+        ok.touch()
+        mock_download.side_effect = [ok, ok, RuntimeError("boom")]
+
+        with pytest.raises(RuntimeError):
+            unwpp.UnwppExtractor().extract("NGA", 2024, 2030)
 
 
 class TestExtractorInterface:

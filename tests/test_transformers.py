@@ -188,6 +188,49 @@ def _build_gadm_zip(tmp_path, iso, level, gids, names_by_level):
     return zip_path
 
 
+def _build_unocha_zstd(tmp_path, level, layer_iso, iso3_value, pcodes):
+    """Build a laser-base-style UNOCHA .gpkg.zstd for a single country/level.
+
+    The GeoPackage layer is named UNOCHA-<layer_iso>-ADM<level> (matching what the
+    transformer reads), while the iso3 column is set to ``iso3_value`` so tests can
+    exercise the defensive ISO filter independently of the layer name.
+
+    Args:
+        tmp_path: pytest tmp_path directory to build in.
+        level: Administrative level.
+        layer_iso: ISO code used in the layer name.
+        iso3_value: Value for the iso3 column (may differ from layer_iso).
+        pcodes: List of adm<level>_pcode values (one per feature).
+
+    Returns:
+        Path to the created .gpkg.zstd file.
+    """
+    import geopandas as gpd
+    import zstandard
+    from shapely.geometry import Polygon
+
+    n = len(pcodes)
+    gdf = gpd.GeoDataFrame(
+        {
+            "iso3": [iso3_value] * n,
+            f"adm{level}_name": [f"Region {i}" for i in range(n)],
+            f"adm{level}_pcode": pcodes,
+            "dot_name": [f"Country:{i}" for i in range(n)],
+            "geometry": [Polygon([(i, 0), (i + 1, 0), (i + 1, 1), (i, 1)]) for i in range(n)],
+        },
+        crs="EPSG:4326",
+    )
+    layer = f"UNOCHA-{layer_iso}-ADM{level}"
+    gpkg = tmp_path / f"{layer}.gpkg"
+    gdf.to_file(gpkg, layer=layer, driver="GPKG")
+
+    zstd_path = tmp_path / f"{layer}.gpkg.zstd"
+    with gpkg.open("rb") as raw, zstd_path.open("wb") as compressed:
+        zstandard.ZstdCompressor().copy_stream(raw, compressed)
+    gpkg.unlink()
+    return zstd_path
+
+
 class TestGadmTransformer:
     """Test suite for GADM transformer functional tests."""
 
@@ -678,6 +721,273 @@ class TestUnochaTransformer:
         assert len(result_gdf) == 2
         assert "population" in result_gdf.columns
         assert set(result_gdf["population"]) == {500.0, 750.0}
+
+    @patch("laser.init.transformers.unocha.update_local_provenance")
+    @patch("laser.init.transformers.unocha.clip_quietly")
+    def test_unocha_transform_output_dir_not_directory_raises(self, mock_clip, mock_prov, tmp_path):
+        """Test that a non-directory output_dir raises ValueError.
+
+        Given a valid repository .gpkg.zstd but an output_dir that is a file
+        When transform() is called
+        Then ValueError is raised at the save step
+
+        Failure indicates the output-directory guard has regressed.
+        """
+        zstd = _build_unocha_zstd(tmp_path, 1, "SEN", "SEN", ["SN01", "SN02"])
+        mock_clip.return_value = {"SN01": 1.0, "SN02": 2.0}
+        mock_prov.return_value = None
+
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        not_a_dir = tmp_path / "afile.txt"
+        not_a_dir.touch()
+
+        with pytest.raises(ValueError):
+            unocha.UnochaTransformer().transform(zstd, "SEN", 1, raster_file, not_a_dir)
+
+    def test_unocha_repository_no_matching_iso3_raises(self, tmp_path):
+        """Test that a repository file with no matching iso3 raises ValueError.
+
+        Given a .gpkg.zstd whose layer matches the requested ISO but whose iso3 column
+            holds a different value
+        When transform() is called
+        Then the defensive ISO filter yields zero features and ValueError is raised
+
+        Failure indicates the empty-result guard in the repository loader has regressed.
+        """
+        zstd = _build_unocha_zstd(tmp_path, 1, "YYY", "XXX", ["YY01"])
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        output_dir = tmp_path / "out"
+        output_dir.mkdir()
+
+        with pytest.raises(ValueError):
+            unocha.UnochaTransformer().transform(zstd, "YYY", 1, raster_file, output_dir)
+
+    @patch("laser.init.transformers.unocha.update_local_provenance")
+    @patch("laser.init.transformers.unocha.clip_quietly")
+    @patch("laser.init.transformers.unocha.read_gdb_quietly")
+    def test_unocha_global_extracts_zip_when_gdb_missing(
+        self, mock_read_gdb, mock_clip, mock_prov, tmp_path
+    ):
+        """Test that the global path extracts the zip when the .gdb is not present.
+
+        Given a global .gdb.zip whose extracted directory does not yet exist
+        When transform() is called
+        Then the archive is extracted (creating the .gdb directory) before reading
+
+        Failure indicates the zip-extraction branch of the global loader has regressed.
+        The geodatabase read is mocked; the extraction itself is real.
+        """
+        import zipfile
+
+        import geopandas as gpd
+        from shapely.geometry import Polygon
+
+        gdf = gpd.GeoDataFrame(
+            {
+                "iso3": ["SEN"],
+                "adm0_name": ["Senegal"],
+                "adm1_name": ["Dakar"],
+                "adm1_pcode": ["SN01"],
+                "geometry": [Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])],
+            },
+            crs="EPSG:4326",
+        )
+        mock_read_gdb.return_value = gdf
+        mock_clip.return_value = {"SN01": 100.0}
+        mock_prov.return_value = None
+
+        shape_file = tmp_path / "global_admin_boundaries_matched_latest.gdb.zip"
+        stem = shape_file.stem  # global_admin_boundaries_matched_latest.gdb
+        with zipfile.ZipFile(shape_file, "w") as zf:
+            zf.writestr(f"{stem}/gdb_marker.txt", "x")
+
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        output_dir = tmp_path / "out"
+        output_dir.mkdir()
+
+        result = unocha.UnochaTransformer().transform(shape_file, "SEN", 1, raster_file, output_dir)
+
+        assert (tmp_path / stem).is_dir()  # extraction created the .gdb directory
+        assert result.exists()
+
+    def test_unocha_global_missing_gdb_after_extraction_raises(self, tmp_path):
+        """Test that a global zip lacking the .gdb directory raises ValueError.
+
+        Given a global .gdb.zip that extracts without producing the expected .gdb dir
+        When transform() is called
+        Then ValueError is raised
+
+        Failure indicates the missing-geodatabase guard has regressed.
+        """
+        import zipfile
+
+        shape_file = tmp_path / "global_admin_boundaries_matched_latest.gdb.zip"
+        with zipfile.ZipFile(shape_file, "w") as zf:
+            zf.writestr("unrelated.txt", "x")
+
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        output_dir = tmp_path / "out"
+        output_dir.mkdir()
+
+        with pytest.raises(ValueError):
+            unocha.UnochaTransformer().transform(shape_file, "SEN", 1, raster_file, output_dir)
+
+    @patch("laser.init.transformers.unocha.read_gdb_quietly")
+    def test_unocha_global_no_country_features_raises(self, mock_read_gdb, tmp_path):
+        """Test that the global path raises when no features match the ISO code.
+
+        Given a global geodatabase whose features are all for other countries
+        When transform() is called for SEN
+        Then ValueError is raised
+
+        Failure indicates the empty-country guard in the global loader has regressed.
+        """
+        import geopandas as gpd
+        from shapely.geometry import Polygon
+
+        gdf = gpd.GeoDataFrame(
+            {
+                "iso3": ["MLI"],
+                "adm0_name": ["Mali"],
+                "adm1_name": ["Bamako"],
+                "adm1_pcode": ["ML01"],
+                "geometry": [Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])],
+            },
+            crs="EPSG:4326",
+        )
+        mock_read_gdb.return_value = gdf
+
+        shape_file = tmp_path / "global_admin_boundaries_matched_latest.gdb.zip"
+        shape_file.touch()
+        (tmp_path / shape_file.stem).mkdir()  # pre-exist so extraction is skipped
+
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        output_dir = tmp_path / "out"
+        output_dir.mkdir()
+
+        with pytest.raises(ValueError):
+            unocha.UnochaTransformer().transform(shape_file, "SEN", 1, raster_file, output_dir)
+
+    @patch("laser.init.transformers.unocha.update_local_provenance")
+    @patch("laser.init.transformers.unocha.clip_quietly")
+    @patch("laser.init.transformers.unocha.read_gdb_quietly")
+    def test_unocha_global_adm_level_4_concatenates_names(
+        self, mock_read_gdb, mock_clip, mock_prov, tmp_path
+    ):
+        """Test that the global path builds the level-4 name from adm3_name + adm4_name.
+
+        Given a global geodatabase with admin levels 0-4 for the requested country
+        When transform() is called with adm_level=4
+        Then the output "name" column is adm3_name concatenated with adm4_name
+
+        Failure indicates the adm_level>=4 naming branch of the global loader has regressed.
+        """
+        import geopandas as gpd
+        from shapely.geometry import Polygon
+
+        gdf = gpd.GeoDataFrame(
+            {
+                "iso3": ["SEN"],
+                "adm0_name": ["Senegal"],
+                "adm1_name": ["Dakar"],
+                "adm2_name": ["Dakar"],
+                "adm3_name": ["C"],
+                "adm4_name": ["D"],
+                "adm4_pcode": ["SN0101"],
+                "geometry": [Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])],
+            },
+            crs="EPSG:4326",
+        )
+        mock_read_gdb.return_value = gdf
+        mock_clip.return_value = {"SN0101": 7.0}
+        mock_prov.return_value = None
+
+        shape_file = tmp_path / "global_admin_boundaries_matched_latest.gdb.zip"
+        shape_file.touch()
+        (tmp_path / shape_file.stem).mkdir()
+
+        raster_file = tmp_path / "pop.tif"
+        raster_file.touch()
+        output_dir = tmp_path / "out"
+        output_dir.mkdir()
+
+        result = unocha.UnochaTransformer().transform(shape_file, "SEN", 4, raster_file, output_dir)
+
+        out = gpd.read_file(result)
+        assert list(out["name"]) == ["CD"]
+
+    def test_unocha_decompress_zstd_reuses_existing_file(self, tmp_path):
+        """Test that _decompress_zstd reuses an already-decompressed GeoPackage.
+
+        Given a .gpkg.zstd that has already been decompressed once
+        When _decompress_zstd is called again
+        Then it returns the existing .gpkg path without re-decompressing
+
+        Failure indicates the decompression cache-reuse branch has regressed.
+        """
+        zstd = _build_unocha_zstd(tmp_path, 1, "SEN", "SEN", ["SN01"])
+
+        first = unocha.UnochaTransformer._decompress_zstd(zstd)
+        assert first.exists()
+
+        # Second call hits the "already exists" branch and returns the same path.
+        second = unocha.UnochaTransformer._decompress_zstd(zstd)
+        assert second == first
+
+
+class TestReadGdbQuietly:
+    """Test suite for the read_gdb_quietly helper (used by the global UNOCHA path)."""
+
+    def test_read_gdb_quietly_reads_named_layer(self, tmp_path):
+        """Test that read_gdb_quietly reads a named layer from a file.
+
+        Given a GeoPackage with a named layer (read_gdb_quietly is layer-agnostic)
+        When read_gdb_quietly is called for that layer
+        Then it returns the layer's features
+
+        Failure indicates the layer-reading helper has regressed.
+        """
+        import geopandas as gpd
+        from shapely.geometry import Polygon
+
+        from laser.init.transformers.unocha import read_gdb_quietly
+
+        gdf = gpd.GeoDataFrame(
+            {"a": [1, 2], "geometry": [Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])] * 2},
+            crs="EPSG:4326",
+        )
+        path = tmp_path / "data.gpkg"
+        gdf.to_file(path, layer="mylayer", driver="GPKG")
+
+        out = read_gdb_quietly(path, "mylayer")
+
+        assert len(out) == 2
+
+    def test_read_gdb_quietly_empty_layer(self, tmp_path):
+        """Test that read_gdb_quietly handles a layer with no features.
+
+        Given a GeoPackage layer with zero features
+        When read_gdb_quietly is called
+        Then it returns an empty GeoDataFrame (and logs the empty result)
+
+        Failure indicates the empty-layer branch has regressed.
+        """
+        import geopandas as gpd
+
+        from laser.init.transformers.unocha import read_gdb_quietly
+
+        empty = gpd.GeoDataFrame({"a": []}, geometry=[], crs="EPSG:4326")
+        path = tmp_path / "empty.gpkg"
+        empty.to_file(path, layer="empty", driver="GPKG")
+
+        out = read_gdb_quietly(path, "empty")
+
+        assert len(out) == 0
 
 
 class TestUnwppTransformer:

@@ -13,6 +13,14 @@ All notable changes to this project will be documented in this file.
   the admin-level-0/4 naming branches.
 
 ### Changed
+- Raised the coverage gate from 85% to 90% (`--cov-fail-under=90`). Added tests
+  lifting the previously thin modules: GADM extractor (shapefile→GeoPackage fallback
+  success and both-fail paths), UNWPP extractor (each of the four download error
+  branches), and the UNOCHA transformer (output-dir guard, empty-ISO guard, global
+  zip extraction and missing-`.gdb` guards, admin-level-4 naming, and the
+  `read_gdb_quietly`/decompression-reuse helpers). Per-file coverage: UNWPP extractor,
+  GADM transformer, and UNOCHA transformer at 100%; GADM extractor at 97% (the one
+  remaining line is unreachable dead code after `error()`). Overall ~97%.
 - Switched the build backend from Hatchling to the uv build backend (`uv_build`):
   updated `[build-system]` and replaced `[tool.hatch.build.targets.wheel]` with
   `[tool.uv.build-backend]` configured for the `laser.init` namespace package under
