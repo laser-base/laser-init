@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- Consolidated all pytest and coverage configuration into `pyproject.toml`
+  (`[tool.pytest.ini_options]`) and removed `pytest.ini`, eliminating the
+  duplicate/conflicting test config. The authoritative settings (full `addopts`
+  including `--strict-markers` and `--cov-fail-under=85`, the complete marker set,
+  and log-cli settings) now live in one place.
 - UNOCHA extractor now downloads per-country, per-administrative-level GeoPackage
   files (`.gpkg.zstd`) from the laser-base UNOCHA repository
   (https://github.com/laser-base/unocha), mirroring the GeoBoundaries extractor.

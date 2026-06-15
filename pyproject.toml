@@ -114,16 +114,42 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.pytest.ini_options]
+# Test discovery patterns
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=laser.init --cov-report=term-missing"
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "network: marks tests as requiring network access",
-    "integration: marks tests as integration tests",
+addopts = [
+    "--verbose",
+    "--strict-markers",
+    "--tb=short",
+    "--cov=laser.init",
+    "--cov-report=html",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+    # Current coverage is ~86%. This gate is set just below that to guard against
+    # regression; ratchet it back up toward 90% as test coverage improves
+    # (notably cli.py, the loaders, and the GADM/geoBoundaries transformer paths).
+    "--cov-fail-under=85",
 ]
+# Markers for categorizing tests
+markers = [
+    "unit: Unit tests for individual components",
+    "integration: Integration tests for component interactions",
+    "slow: Tests that take longer to run",
+    "network: Tests that require network access (should be mocked)",
+    "extractor: Tests for data extractors",
+    "transformer: Tests for data transformers",
+    "model: Tests for epidemic models",
+    "cli: Tests for CLI interface",
+    "edge_case: Tests for edge cases and boundary conditions",
+    "error: Tests for error handling",
+]
+# Logging
+log_cli = false
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
 [tool.mypy]
 python_version = "3.10"
