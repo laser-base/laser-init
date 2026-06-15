@@ -134,10 +134,7 @@ addopts = [
     "--cov-report=html",
     "--cov-report=term-missing",
     "--cov-report=xml",
-    # Current coverage is ~86%. This gate is set just below that to guard against
-    # regression; ratchet it back up toward 90% as test coverage improves
-    # (notably cli.py, the loaders, and the GADM/geoBoundaries transformer paths).
-    "--cov-fail-under=85",
+    "--cov-fail-under=90",
 ]
 # Markers for categorizing tests
 markers = [
