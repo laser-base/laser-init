@@ -17,7 +17,7 @@ requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
-    { name = "Institute for Disease Modeling" },
+    { name = "Christopher Lorton", email="christopher.lorton@gatesfoundation.org" },
 ]
 keywords = [
     "epidemiology",
