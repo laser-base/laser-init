@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
   the "Getting Help" reference now links to the Quick Start and existing workflows.
 
 ### Added
+- `examples/` directory with an index README and three runnable basic shell examples
+  (quick start, boundary-source comparison, custom model parameters), linked from the
+  main `README.md`. Examples were corrected against the actual CLI behavior (underscore
+  config keys, `--output-dir` paths).
 - API reference pages for the loaders (`docs/api/loaders/abm.md`, `mpm.md`) with a
   "Loaders" entry in the MkDocs API navigation — the loaders were the only component
   family without API docs.
