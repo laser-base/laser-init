@@ -377,6 +377,12 @@ plt.title("Population Distribution")
 plt.show()
 ```
 
+## Examples
+
+Ready-to-run example scripts live in the [`examples/`](examples/README.md) directory,
+starting with basic end-to-end workflows (quick start, data-source comparison, and
+custom model parameters).
+
 ## Documentation
 
 - [User Guide](docs/userguide.md) - Comprehensive tutorial and workflows
