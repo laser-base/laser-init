@@ -89,6 +89,5 @@ class GadmExtractor:
 
             except Exception as e:
                 error(f"Failed to download GADM geopackage: {e}.", RuntimeError)
-                local_path = None
 
         return local_path

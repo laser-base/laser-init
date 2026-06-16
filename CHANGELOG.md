@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Removed
+- Deleted the stale `docstrings.md` tracking document; all of its actionable items
+  were already addressed in the code or had become obsolete.
+
+### Changed
+- Cleaned up minor docstring/comment debt: removed the unused captured-output variable
+  in `clip_quietly`, annotated `error()` as `-> NoReturn`, removed the now-unreachable
+  `local_path = None` after `error()` in the GADM extractor, and corrected the stale
+  "just print the paths" comment in `emit_model_script`.
+
 ### Fixed
 - GADM transformer: clip a temporary standalone shapefile instead of an invalid
   path constructed inside the `.zip` archive (`shape_file / "gadm41_…shp"`, which
