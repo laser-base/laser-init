@@ -76,6 +76,9 @@ nav:
           - geoBoundaries: api/transformers/geoboundaries.md
           - UN WPP: api/transformers/unwpp.md
           - UNOCHA: api/transformers/unocha.md
+      - Loaders:
+          - ABM: api/loaders/abm.md
+          - MPM: api/loaders/mpm.md
       - Models:
           - SI Model: api/models/si.md
           - SIR Model: api/models/sir.md
