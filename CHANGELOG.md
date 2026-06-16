@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - Deleted the stale `doc_plan.md` tracking document; its remaining relevant items were
   addressed (see below) and the rest were complete, aspirational, or not applicable.
 
+### Fixed
+- User guide no longer points to a non-existent `examples/` directory ("coming soon");
+  the "Getting Help" reference now links to the Quick Start and existing workflows.
+
 ### Added
 - API reference pages for the loaders (`docs/api/loaders/abm.md`, `mpm.md`) with a
   "Loaders" entry in the MkDocs API navigation — the loaders were the only component

@@ -682,4 +682,4 @@ plt.savefig("custom_attack_rate.png", dpi=300, bbox_inches="tight")
 
 - **GitHub Issues**: [Report bugs or request features](https://github.com/InstituteforDiseaseModeling/laser-init/issues)
 - **Documentation**: Check all docs in the `docs/` directory
-- **Examples**: See the `examples/` directory for common use cases (coming soon)
+- **Examples**: See the [Quick Start](quickstart.md) and the workflows above for common use cases.
