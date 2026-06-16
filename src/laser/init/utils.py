@@ -14,6 +14,7 @@ import unicodedata
 import warnings
 from datetime import datetime
 from pathlib import Path
+from typing import NoReturn
 
 import click
 import pycountry
@@ -329,9 +330,8 @@ def clip_quietly(raster_file: Path, shapefile: Path, shape_attr: str) -> dict[st
     inform(
         f"Clipping raster_file={raster_file} with shapefile={shapefile}, shape_attr={shape_attr}..."
     )
-    with io.StringIO() as buf, contextlib.redirect_stdout(buf):
+    with contextlib.redirect_stdout(io.StringIO()):
         pop_dict = rtk.raster_clip(raster_file, shapefile, shape_attr=shape_attr)
-        _output = buf.getvalue()
     inform(f"Clipped raster_file={raster_file}.")
 
     return pop_dict
@@ -352,7 +352,7 @@ def inform(msg: str) -> None:
     return
 
 
-def error(msg: str, exception: Exception = RuntimeError) -> None:
+def error(msg: str, exception: Exception = RuntimeError) -> NoReturn:
     """Display an error message, log it, and raise an exception.
 
     Args:

@@ -422,8 +422,8 @@ def emit_model_script(
     Returns:
         None
     """
-    # For now, just print the paths to the transformed data files. In the future, this could generate
-    # a Python script that loads the data and prepares it for use with a LASER model.
+    # Report the transformed data files, then dispatch to the selected loader to write
+    # the model script and configuration into the output directory.
     inform(f"Emitting model script for {mode}/{model} with data files:")
     inform(f"Shape file:                       '{shapes_filename}'")
     inform(f"CBR/CDR file:                     '{cxr_filename}'")
