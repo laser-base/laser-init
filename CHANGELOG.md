@@ -7,6 +7,16 @@ All notable changes to this project will be documented in this file.
 ### Removed
 - Deleted the stale `docstrings.md` tracking document; all of its actionable items
   were already addressed in the code or had become obsolete.
+- Deleted the stale `doc_plan.md` tracking document; its remaining relevant items were
+  addressed (see below) and the rest were complete, aspirational, or not applicable.
+
+### Added
+- API reference pages for the loaders (`docs/api/loaders/abm.md`, `mpm.md`) with a
+  "Loaders" entry in the MkDocs API navigation — the loaders were the only component
+  family without API docs.
+- Documentation build-status badge in `README.md`.
+- "Building the docs" guidance in `docs/contributing.md` (mkdocs serve/build, the
+  `docs/` layout, and how to add an API page).
 
 ### Changed
 - Cleaned up minor docstring/comment debt: removed the unused captured-output variable

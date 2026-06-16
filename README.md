@@ -1,5 +1,7 @@
 # laser-init - a tool to bootstrap spatial modeling with LASER
 
+[![Documentation](https://github.com/laser-base/laser-init/actions/workflows/docs.yml/badge.svg)](https://laser-base.github.io/laser-init)
+
 **laser-init** prepares geospatial, population, and demographic data for epidemiological modeling with [LASER](https://github.com/laser-base/laser-generic). It downloads administrative boundary shapefiles, population raster data, and demographic statistics, then generates a ready-to-run spatial disease model.
 
 ## Prerequisites
