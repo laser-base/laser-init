@@ -22,7 +22,13 @@ logs/
 site/
 
 coverage.xml
+
+# laser-init / example run output directories (generated data)
 PAK/
 SEN/
 NGA/
 KEN/
+ETH/
+compare/
+west_africa/
+timeseries/

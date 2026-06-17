@@ -23,14 +23,14 @@ spec.loader.exec_module(plot)
     "-c",
     "--config",
     "config_file",
-    type=click.Path(exists=True),
+    type=click.Path(exists=True, path_type=Path),
     default=Path(__file__).parent / "config.yaml",
     help="Path to the configuration YAML file.",
 )
 @click.option(
     "-d",
     "--data-dir",
-    type=click.Path(exists=True),
+    type=click.Path(exists=True, path_type=Path),
     default=None,
     help="Path to the data directory.",
 )

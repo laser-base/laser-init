@@ -11,6 +11,11 @@ All notable changes to this project will be documented in this file.
   addressed (see below) and the rest were complete, aspirational, or not applicable.
 
 ### Fixed
+- Generated model scripts (SI/SIR/SEIR) crashed with `AttributeError: 'str' object has
+  no attribute 'read_text'` when run with an explicit `--config`/`--data-dir` path. The
+  Click options used `click.Path(exists=True)` without `path_type=Path`, so a
+  command-line value arrived as a `str` (the default Path masked the bug). Added
+  `path_type=Path` to the option definitions in `models/si.py`, `sir.py`, and `seir.py`.
 - User guide no longer points to a non-existent `examples/` directory ("coming soon");
   the "Getting Help" reference now links to the Quick Start and existing workflows.
 
