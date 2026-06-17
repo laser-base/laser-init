@@ -26,8 +26,27 @@ Run an example from the repository root, for example:
 bash examples/basic/01_quick_start.sh
 ```
 
+## Workflow examples
+
+Longer, end-to-end workflows that drive `laser-init` across multiple runs:
+
+| Script | What it shows |
+| --- | --- |
+| [`workflows/multi_country_analysis.sh`](workflows/multi_country_analysis.sh) | Batch-generate and run models for several countries, then summarize population across them. |
+| [`workflows/time_series_comparison.py`](workflows/time_series_comparison.py) | Generate the same country across multiple snapshot years and compare district/national population over time. |
+| [`workflows/sensitivity_analysis.py`](workflows/sensitivity_analysis.py) | Sweep R0 and infectious duration over one dataset, collecting each scenario's output. |
+
+The `.py` workflows are run with `python3`, e.g.:
+
+```shell
+python3 examples/workflows/time_series_comparison.py
+```
+
+These workflows generate (and, in some cases, run) models for multiple
+countries/years/parameter sets, so they download more data and take longer than
+the basic examples. Each script notes how to trim its scope to try it quickly.
+
 ## More examples
 
-Additional workflow, data-integration, and model-customization examples are
-planned. Contributions are welcome — see the
-[contributing guide](../docs/contributing.md).
+Additional data-integration and model-customization examples are planned.
+Contributions are welcome — see the [contributing guide](../docs/contributing.md).

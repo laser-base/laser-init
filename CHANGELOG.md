@@ -19,6 +19,10 @@ All notable changes to this project will be documented in this file.
   (quick start, boundary-source comparison, custom model parameters), linked from the
   main `README.md`. Examples were corrected against the actual CLI behavior (underscore
   config keys, `--output-dir` paths).
+- `examples/workflows/` with three end-to-end workflow examples: multi-country batch
+  generation with a population summary (`multi_country_analysis.sh`), multi-year
+  population comparison (`time_series_comparison.py`), and a parameter sweep over R0 and
+  infectious duration driven through `seir.py --config` (`sensitivity_analysis.py`).
 - API reference pages for the loaders (`docs/api/loaders/abm.md`, `mpm.md`) with a
   "Loaders" entry in the MkDocs API navigation — the loaders were the only component
   family without API docs.
