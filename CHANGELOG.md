@@ -40,6 +40,12 @@ All notable changes to this project will be documented in this file.
   reproduces the generated `seir.py` setup. (A vaccination example is intentionally
   omitted — the built-in immunization components require a different model formulation;
   see the examples README.)
+- `examples/advanced/` with three verified advanced examples — Monte Carlo uncertainty
+  quantification (`uncertainty_quantification.py`), R0 calibration to a target attack
+  rate via bisection (`calibration_example.py`, numpy only), and a parallel scenario
+  sweep with `ProcessPoolExecutor` (`parallel_scenarios.py`) — plus a shared `_common.py`
+  whose `run_scenario` builds/runs a SEIR model with parameter overrides and extracts
+  scalar metrics (peak timing/size, attack rate) from `model.nodes`.
 - API reference pages for the loaders (`docs/api/loaders/abm.md`, `mpm.md`) with a
   "Loaders" entry in the MkDocs API navigation — the loaders were the only component
   family without API docs.

@@ -83,8 +83,25 @@ customization.
 > than shipped in a form that doesn't run. Initial/standing immunity can instead be
 > set at setup via the scenario's `R` column (see `naive_population` in the config).
 
+## Advanced examples
+
+Techniques that run the model many times and extract scalar outcomes (peak
+timing, peak size, attack rate) from `model.nodes.S/E/I/R`. They share
+`_common.py`, whose `run_scenario(base, overrides, nyears)` builds and runs a SEIR
+model with parameter overrides and returns summary metrics.
+
+| Script | What it shows |
+| --- | --- |
+| [`advanced/uncertainty_quantification.py`](advanced/uncertainty_quantification.py) | Monte Carlo: sample R0, run the model per draw, summarize the attack-rate / peak distribution. |
+| [`advanced/calibration_example.py`](advanced/calibration_example.py) | Calibrate R0 to a target attack rate with a bounded (bisection) search — numpy only, no scipy. |
+| [`advanced/parallel_scenarios.py`](advanced/parallel_scenarios.py) | Run a grid of scenarios across worker processes with `ProcessPoolExecutor`. |
+
+Each of these runs the full LASER model multiple times, so they are the
+heaviest examples here. Reduce the sample count / grid / `NYEARS` (or choose a
+smaller country) to try them quickly, and keep `MAX_WORKERS` small in the
+parallel example since each worker holds a full model in memory.
+
 ## More examples
 
-Advanced examples (calibration, uncertainty quantification, parallel scenarios)
-and notebooks are planned. Contributions are welcome — see the
+Jupyter notebooks are planned. Contributions are welcome — see the
 [contributing guide](../docs/contributing.md).
