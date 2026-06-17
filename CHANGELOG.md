@@ -33,6 +33,13 @@ All notable changes to this project will be documented in this file.
   quality choropleth (`custom_visualization.py`), and a QGIS-ready enriched layer
   (`export_to_qgis.py`). Area/density are computed via an equal-area projection (the
   data is EPSG:4326); no extra dependencies beyond the project's own.
+- `examples/model_customization/` with two verified model-customization examples built
+  on laser-generic components: a transmission-reducing "social distancing" window via
+  the `Transmission` seasonality multiplier (`social_distancing.py`) and an SEIRS model
+  with waning immunity (`seirs_waning_immunity.py`), plus a shared `_common.py` that
+  reproduces the generated `seir.py` setup. (A vaccination example is intentionally
+  omitted — the built-in immunization components require a different model formulation;
+  see the examples README.)
 - API reference pages for the loaders (`docs/api/loaders/abm.md`, `mpm.md`) with a
   "Loaders" entry in the MkDocs API navigation — the loaders were the only component
   family without API docs.
