@@ -101,7 +101,28 @@ heaviest examples here. Reduce the sample count / grid / `NYEARS` (or choose a
 smaller country) to try them quickly, and keep `MAX_WORKERS` small in the
 parallel example since each worker holds a full model in memory.
 
+## Notebooks
+
+Interactive Jupyter notebooks that walk through the same material:
+
+| Notebook | What it covers |
+| --- | --- |
+| [`notebooks/01_getting_started.ipynb`](notebooks/01_getting_started.ipynb) | Generate a dataset, inspect the outputs, and run the model. |
+| [`notebooks/02_data_exploration.ipynb`](notebooks/02_data_exploration.ipynb) | Explore the GeoPackage and demographic CSVs with maps and plots. |
+| [`notebooks/03_model_comparison.ipynb`](notebooks/03_model_comparison.ipynb) | Build and run SI / SIR / SEIR on the same data and overlay the infectious curves. |
+| [`notebooks/04_custom_analysis.ipynb`](notebooks/04_custom_analysis.ipynb) | End-to-end: generate, sweep R0 with `run_scenario`, and compare outcomes. |
+
+Jupyter isn't a project dependency. Run the notebooks with, e.g.:
+
+```shell
+uv run --with jupyter jupyter lab examples/notebooks
+```
+
+Run them from the `examples/notebooks/` directory (notebook 04 imports the shared
+helper from `../advanced/`). Like the scripts, they generate data on first run and
+the model-running notebooks (01, 03, 04) are compute-heavy — pick a smaller
+`COUNTRY` or fewer years to try them quickly.
+
 ## More examples
 
-Jupyter notebooks are planned. Contributions are welcome — see the
-[contributing guide](../docs/contributing.md).
+Contributions are welcome — see the [contributing guide](../docs/contributing.md).
