@@ -46,7 +46,22 @@ These workflows generate (and, in some cases, run) models for multiple
 countries/years/parameter sets, so they download more data and take longer than
 the basic examples. Each script notes how to trim its scope to try it quickly.
 
+## Data integration examples
+
+Working with the GeoPackage output in Python and other GIS tools:
+
+| Script | What it shows |
+| --- | --- |
+| [`data_integration/geopackage_analysis.py`](data_integration/geopackage_analysis.py) | Load a GeoPackage, compute population statistics and density (with correct equal-area area calculation), and save multi-panel maps. |
+| [`data_integration/custom_visualization.py`](data_integration/custom_visualization.py) | Produce a publication-quality, log-scaled population choropleth with matplotlib only. |
+| [`data_integration/export_to_qgis.py`](data_integration/export_to_qgis.py) | Enrich the GeoPackage with area/density/rank attributes and write a QGIS-ready layer. |
+
+These read the GeoPackage that `laser-init` produces (generating it once into
+`./NGA/2010` if needed); they do not run the epidemiological model. Note that the
+GeoPackage is in EPSG:4326, so area and density are computed after reprojecting to
+an equal-area CRS.
+
 ## More examples
 
-Additional data-integration and model-customization examples are planned.
-Contributions are welcome — see the [contributing guide](../docs/contributing.md).
+Additional model-customization examples are planned. Contributions are welcome —
+see the [contributing guide](../docs/contributing.md).

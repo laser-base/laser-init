@@ -28,6 +28,11 @@ All notable changes to this project will be documented in this file.
   generation with a population summary (`multi_country_analysis.sh`), multi-year
   population comparison (`time_series_comparison.py`), and a parameter sweep over R0 and
   infectious duration driven through `seir.py --config` (`sensitivity_analysis.py`).
+- `examples/data_integration/` with three examples for working with the GeoPackage
+  output: statistics and multi-panel maps (`geopackage_analysis.py`), a publication-
+  quality choropleth (`custom_visualization.py`), and a QGIS-ready enriched layer
+  (`export_to_qgis.py`). Area/density are computed via an equal-area projection (the
+  data is EPSG:4326); no extra dependencies beyond the project's own.
 - API reference pages for the loaders (`docs/api/loaders/abm.md`, `mpm.md`) with a
   "Loaders" entry in the MkDocs API navigation — the loaders were the only component
   family without API docs.
