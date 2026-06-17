@@ -379,9 +379,11 @@ plt.show()
 
 ## Examples
 
-Ready-to-run example scripts live in the [`examples/`](examples/README.md) directory,
-starting with basic end-to-end workflows (quick start, data-source comparison, and
-custom model parameters).
+Ready-to-run example scripts and Jupyter notebooks live in the
+[`examples/`](examples/README.md) directory, ordered from basic usage through
+workflows, data integration, model customization, and advanced techniques
+(calibration, uncertainty quantification, parallel sweeps). See the
+[examples README](examples/README.md) for the full index.
 
 ## Documentation
 

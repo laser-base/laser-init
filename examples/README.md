@@ -1,6 +1,17 @@
 # laser-init examples
 
-Ready-to-run examples demonstrating common `laser-init` workflows.
+Ready-to-run examples demonstrating common `laser-init` workflows, ordered from
+simplest to most advanced:
+
+1. **basic/** — the core command and config.
+2. **workflows/** — multi-run pipelines (multiple countries, years, parameters).
+3. **data_integration/** — analyzing and visualizing the GeoPackage output.
+4. **model_customization/** — changing model structure/dynamics with laser-generic.
+5. **advanced/** — calibration, uncertainty quantification, and parallel sweeps.
+6. **notebooks/** — interactive Jupyter walkthroughs of the above.
+
+Start with `basic/01_quick_start.sh` (or `notebooks/01_getting_started.ipynb`) and
+work down the list.
 
 ## Prerequisites
 
@@ -11,6 +22,15 @@ Ready-to-run examples demonstrating common `laser-init` workflows.
   the [configuration docs](../docs/configuration.md) for the cache location.
 - Run the scripts from a directory where you're happy to have output
   directories created (the examples write into the current working directory).
+
+### Example data
+
+No sample data is bundled with the repository. Each example **generates the data it
+needs on demand** by invoking `laser-init` (and reuses it on subsequent runs), so
+the examples stay in sync with the current data sources and the output schema. The
+first run of an example therefore requires network access and some disk space; see
+the [data sources](../docs/datasources.md) and [configuration](../docs/configuration.md)
+docs for sizes and cache locations.
 
 ## Basic examples
 
