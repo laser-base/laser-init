@@ -63,6 +63,9 @@ All notable changes to this project will be documented in this file.
   `docs/` layout, and how to add an API page).
 
 ### Changed
+- Marked `examples-plan.md` as implemented: checked off the completed phases/criteria
+  and recorded the deviations (two omitted Phase 4 examples, dropped `contextily`/`scipy`,
+  data generated on demand, CI static checks).
 - Cleaned up minor docstring/comment debt: removed the unused captured-output variable
   in `clip_quietly`, annotated `error()` as `-> NoReturn`, removed the now-unreachable
   `local_path = None` after `error()` in the GADM extractor, and corrected the stale

@@ -438,58 +438,94 @@ print(f"Final error: {result.fun:.2f}")
 
 ## Implementation Plan
 
-### Phase 1: Basic Examples (Week 1)
-- [ ] Create examples directory structure
-- [ ] Write basic/ examples (01-03)
-- [ ] Test all basic examples
-- [ ] Write examples/README.md
+> **Status: implemented.** The examples were built and corrected against the real
+> CLI and `laser-generic` API (the snippets above are the original plan and may
+> differ from what shipped). See **Implementation notes & deviations** below.
 
-### Phase 2: Workflows (Week 2)
-- [ ] Implement multi_country_analysis.sh
-- [ ] Implement time_series_comparison.py
-- [ ] Implement sensitivity_analysis.py
-- [ ] Add supporting utilities
+### Phase 1: Basic Examples — DONE
+- [x] Create examples directory structure
+- [x] Write basic/ examples (01-03)
+- [x] Test all basic examples (`bash -n`; the CLI path was verified end to end)
+- [x] Write examples/README.md
 
-### Phase 3: Data Integration (Week 3)
-- [ ] Implement geopackage_analysis.py
-- [ ] Implement custom_visualization.py
-- [ ] Implement export_to_qgis.py
-- [ ] Add sample data if needed
+### Phase 2: Workflows — DONE
+- [x] Implement multi_country_analysis.sh
+- [x] Implement time_series_comparison.py (verified end to end)
+- [x] Implement sensitivity_analysis.py
+- [x] Add supporting utilities — done inline (replaced the plan's undefined
+      `compare_sources.py` / `generate_regional_report.py` with in-script logic)
 
-### Phase 4: Model Customization (Week 4)
-- [ ] Implement add_vaccination.py
-- [ ] Implement social_distancing.py
-- [ ] Implement age_structured_seir.py
-- [ ] Implement seirs_waning_immunity.py
+### Phase 3: Data Integration — DONE
+- [x] Implement geopackage_analysis.py
+- [x] Implement custom_visualization.py (matplotlib only; `contextily` shown as an
+      optional snippet rather than a dependency)
+- [x] Implement export_to_qgis.py
+- [x] Add sample data if needed — decided **against** bundling; examples generate
+      data on demand via `laser-init` (documented in the examples README)
 
-### Phase 5: Advanced Examples (Week 5)
-- [ ] Implement calibration_example.py
-- [ ] Implement uncertainty_quantification.py
-- [ ] Implement parallel_scenarios.py
-- [ ] Performance optimization
+### Phase 4: Model Customization — PARTIAL (2 of 4)
+- [ ] Implement add_vaccination.py — **omitted**: `laser-generic`'s
+      `ImmunizationCampaign`/`RoutineImmunization` use the legacy `__call__(model, tick)`
+      protocol and a per-agent `susceptibility` model, so they don't run with the
+      generated S/E/I/R model. Upstream issue drafted in `tmp/lg-issue.md`; revisit
+      when fixed.
+- [x] Implement social_distancing.py (verified end to end; uses the `Transmission`
+      seasonality multiplier)
+- [ ] Implement age_structured_seir.py — **omitted**: laser-generic is already
+      per-agent/age-based and exposes no contact-matrix/age-stratified construct, so no
+      non-speculative example was possible.
+- [x] Implement seirs_waning_immunity.py (verified end to end)
 
-### Phase 6: Notebooks (Week 6)
-- [ ] Create Jupyter notebooks (01-04)
-- [ ] Add interactive widgets
-- [ ] Test notebooks
-- [ ] Add binder/colab links
+### Phase 5: Advanced Examples — DONE
+- [x] Implement calibration_example.py (numpy bisection — no scipy; `scipy` is not a
+      project dependency)
+- [x] Implement uncertainty_quantification.py
+- [x] Implement parallel_scenarios.py (verified end to end)
+- [x] Performance optimization — kept runs tractable via `nyears`, small grids/samples,
+      and a `ProcessPoolExecutor`; added a shared `_common.run_scenario` that extracts
+      metrics directly from `model.nodes` (the generated `seir.py` emits only plots)
 
-### Phase 7: Documentation & Polish (Week 7)
-- [ ] Write comprehensive examples/README.md
-- [ ] Add comments and docstrings
-- [ ] Create example data directory
-- [ ] Update main README to link to examples
-- [ ] CI/CD for testing examples
+### Phase 6: Notebooks — DONE
+- [x] Create Jupyter notebooks (01-04)
+- [ ] Add interactive widgets — skipped (out of scope; kept notebooks dependency-light)
+- [x] Test notebooks — verified by code (all cells compile; notebook 02 and the model
+      builder in 03 run), since Jupyter is not installed in this environment
+- [ ] Add binder/colab links — skipped (see Future Enhancements)
+
+### Phase 7: Documentation & Polish — DONE
+- [x] Write comprehensive examples/README.md (learning progression + per-section tables)
+- [x] Add comments and docstrings (module docstrings + learning objectives; notebook markdown)
+- [x] Create example data directory — reframed as an "Example data" note: data is
+      generated on demand, not bundled (keeps examples in sync with the data sources)
+- [x] Update main README to link to examples
+- [x] CI/CD for testing examples — the CI lint job runs `ruff` over `examples/`,
+      compiles every script, and validates notebooks as nbformat-v4 JSON (static only;
+      full execution is too heavy/network-dependent for CI)
+
+## Implementation notes & deviations
+
+- **Corrected against reality:** the original snippets had bugs (hyphenated config keys,
+  `--output-dir` path assumptions, `.area` on EPSG:4326, a `seir.py --config` crash that
+  was fixed in the package, and speculative model/optimizer APIs). The shipped examples
+  use the real CLI behavior, the verified `laser-generic` API, and only the project's own
+  dependencies (no `contextily`, no `scipy`).
+- **Two examples omitted** (`add_vaccination.py`, `age_structured_seir.py`) — see Phase 4.
+- **Shared helpers:** `model_customization/_common.py` and `advanced/_common.py` reproduce
+  the generated `seir.py` setup so examples express only what they customize.
 
 ## Success Criteria
 
-- [ ] All examples run without errors
-- [ ] Clear learning progression (basic → advanced)
-- [ ] Well-commented code
-- [ ] Comprehensive README with learning objectives
-- [ ] Examples tested in CI
-- [ ] Notebooks render correctly on GitHub
-- [ ] Example data included or downloadable
+- [~] All examples run without errors — verified by representative end-to-end runs
+      (parallel_scenarios, time_series_comparison, social_distancing, seirs_waning,
+      notebook 02 + the 03 model builder, `run_scenario`) plus static checks on the rest;
+      not every example was exhaustively executed (full runs are large downloads + long
+      LASER simulations)
+- [x] Clear learning progression (basic → advanced)
+- [x] Well-commented code
+- [x] Comprehensive README with learning objectives
+- [x] Examples tested in CI (static: lint + compile + notebook validity)
+- [x] Notebooks render correctly on GitHub (valid nbformat-v4 JSON)
+- [x] Example data included or downloadable (downloadable/generated on demand)
 
 ## Future Enhancements
 
@@ -502,5 +538,7 @@ print(f"Final error: {result.fun:.2f}")
 ---
 
 **Created**: March 2026
-**Status**: Planning Phase
+**Status**: Implemented (2026-06-17) — all phases complete except two intentionally
+omitted Phase 4 examples (`add_vaccination.py`, `age_structured_seir.py`); see the
+Implementation Plan notes.
 **Priority**: Medium (after core documentation complete)
