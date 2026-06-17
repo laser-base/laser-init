@@ -46,6 +46,11 @@ All notable changes to this project will be documented in this file.
   sweep with `ProcessPoolExecutor` (`parallel_scenarios.py`) — plus a shared `_common.py`
   whose `run_scenario` builds/runs a SEIR model with parameter overrides and extracts
   scalar metrics (peak timing/size, attack rate) from `model.nodes`.
+- `examples/notebooks/` with four Jupyter notebooks: getting started
+  (`01_getting_started.ipynb`), data exploration (`02_data_exploration.ipynb`),
+  SI/SIR/SEIR comparison (`03_model_comparison.ipynb`), and an end-to-end custom
+  analysis (`04_custom_analysis.ipynb`). Jupyter is not a project dependency; the
+  examples README documents how to run them.
 - API reference pages for the loaders (`docs/api/loaders/abm.md`, `mpm.md`) with a
   "Loaders" entry in the MkDocs API navigation — the loaders were the only component
   family without API docs.
