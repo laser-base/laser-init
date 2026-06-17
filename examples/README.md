@@ -61,7 +61,30 @@ These read the GeoPackage that `laser-init` produces (generating it once into
 GeoPackage is in EPSG:4326, so area and density are computed after reprojecting to
 an equal-area CRS.
 
+## Model customization examples
+
+Change the generated model's structure or dynamics using laser-generic
+components. These build and run a full LASER simulation, so they are
+compute-heavy; they share `_common.py`, which reproduces the generated `seir.py`
+setup (data loading, scenario, vital dynamics) so each example only expresses its
+customization.
+
+| Script | What it shows |
+| --- | --- |
+| [`model_customization/social_distancing.py`](model_customization/social_distancing.py) | Reduce transmission during a window using the `Transmission` component's `seasonality` multiplier. |
+| [`model_customization/seirs_waning_immunity.py`](model_customization/seirs_waning_immunity.py) | Switch SEIR → SEIRS so immunity wanes (R → S) after a drawn duration. |
+
+> **Note on vaccination:** laser-generic ships `ImmunizationCampaign` /
+> `RoutineImmunization` components, but they target a model formulation with a
+> per-agent `susceptibility` property and use the classic `__call__(model, tick)`
+> component protocol, whereas the generated S/E/I/R model uses compartment
+> components driven by `step(tick)`. They therefore don't drop into the generated
+> model without changes, so a vaccination example is intentionally omitted rather
+> than shipped in a form that doesn't run. Initial/standing immunity can instead be
+> set at setup via the scenario's `R` column (see `naive_population` in the config).
+
 ## More examples
 
-Additional model-customization examples are planned. Contributions are welcome —
-see the [contributing guide](../docs/contributing.md).
+Advanced examples (calibration, uncertainty quantification, parallel scenarios)
+and notebooks are planned. Contributions are welcome — see the
+[contributing guide](../docs/contributing.md).
