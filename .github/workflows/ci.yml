@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   lint:
-    name: Lint and format (Python 3.12)
+    name: Lint, format, and examples (Python 3.12)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,10 +35,30 @@ jobs:
         run: uv sync --group dev --python 3.12
 
       - name: Ruff lint
-        run: uv run --python 3.12 ruff check src tests
+        run: uv run --python 3.12 ruff check src tests examples
 
       - name: Ruff format check
-        run: uv run --python 3.12 ruff format --check src tests
+        run: uv run --python 3.12 ruff format --check src tests examples
+
+      - name: Validate example scripts and notebooks
+        # Static checks only — the examples download data and run full models, which
+        # is too heavy/network-dependent for CI. We syntax-check every example script
+        # and confirm the notebooks are valid nbformat-v4 JSON (so GitHub renders them).
+        run: |
+          uv run --python 3.12 python - <<'PY'
+          import glob
+          import json
+          import py_compile
+
+          for script in sorted(glob.glob("examples/**/*.py", recursive=True)):
+              py_compile.compile(script, doraise=True)
+
+          for nb in sorted(glob.glob("examples/notebooks/*.ipynb")):
+              doc = json.load(open(nb))
+              assert doc.get("nbformat") == 4 and isinstance(doc.get("cells"), list), nb
+
+          print("examples: scripts compile and notebooks are valid")
+          PY
 
   test:
     name: Tests (Python ${{ matrix.python-version }})

@@ -51,6 +51,10 @@ All notable changes to this project will be documented in this file.
   SI/SIR/SEIR comparison (`03_model_comparison.ipynb`), and an end-to-end custom
   analysis (`04_custom_analysis.ipynb`). Jupyter is not a project dependency; the
   examples README documents how to run them.
+- CI now statically checks the examples: the lint job runs `ruff` over `examples/`,
+  compiles every example script, and validates the notebooks as nbformat-v4 JSON.
+  The examples README gained a learning-progression overview and an "example data"
+  note (data is generated on demand, not bundled); `.ipynb_checkpoints/` is gitignored.
 - API reference pages for the loaders (`docs/api/loaders/abm.md`, `mpm.md`) with a
   "Loaders" entry in the MkDocs API navigation — the loaders were the only component
   family without API docs.
