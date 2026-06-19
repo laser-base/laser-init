@@ -222,7 +222,7 @@ Time,CBR,CDR
 ...
 ```
 
-**Units**: Per 1,000 people per-year (43.920 = 42.92 births per 1,000 population, each year)
+**Units**: Per 1,000 people per-year (43.920 = 43.92 births per 1,000 population, each year)
 
 **Use case**: Vital dynamics (births and deaths) in the model
 
