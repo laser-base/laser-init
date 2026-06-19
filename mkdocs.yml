@@ -11,171 +11,170 @@ copyright: Copyright &copy; 2024 Institute for Disease Modeling
 
 # Theme configuration
 theme:
-  name: material
-  palette:
-    # Light mode
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    # Dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
-  font:
-    text: Roboto
-    code: Roboto Mono
-  features:
-    - navigation.tabs
-    - navigation.sections
-    - navigation.top
-    - navigation.footer
-    - navigation.tracking
-    - search.suggest
-    - search.highlight
-    - search.share
-    - content.code.copy
-    - content.code.annotate
-    - content.tabs.link
-  icon:
-    repo: fontawesome/brands/github
+    name: material
+    palette:
+        # Light mode
+        - media: "(prefers-color-scheme: light)"
+          scheme: default
+          primary: indigo
+          accent: indigo
+          toggle:
+              icon: material/brightness-7
+              name: Switch to dark mode
+        # Dark mode
+        - media: "(prefers-color-scheme: dark)"
+          scheme: slate
+          primary: indigo
+          accent: indigo
+          toggle:
+              icon: material/brightness-4
+              name: Switch to light mode
+    font:
+        text: Roboto
+        code: Roboto Mono
+    features:
+        - navigation.tabs
+        - navigation.sections
+        - navigation.top
+        - navigation.footer
+        - navigation.tracking
+        - search.suggest
+        - search.highlight
+        - search.share
+        - content.code.copy
+        - content.code.annotate
+        - content.tabs.link
+    icon:
+        repo: fontawesome/brands/github
 
 # Navigation structure
 nav:
-  - Home: index.md
-  - Getting Started:
-      - Installation: installation.md
-      - Quick Start: quickstart.md
-  - User Guide: userguide.md
-  - Configuration: configuration.md
-  - Data Sources: datasources.md
-  - Models: models.md
-  - Troubleshooting: troubleshooting.md
-  - Architecture: architecture.md
-  - API Reference:
-      - Core:
-          - CLI: api/cli.md
-          - Config: api/config.md
-          - Utils: api/utils.md
-          - Logger: api/logger.md
-      - Extractors:
-          - GADM: api/extractors/gadm.md
-          - geoBoundaries: api/extractors/geoboundaries.md
-          - WorldPop: api/extractors/worldpop.md
-          - UN WPP: api/extractors/unwpp.md
-          - UNOCHA: api/extractors/unocha.md
-      - Transformers:
-          - GADM: api/transformers/gadm.md
-          - geoBoundaries: api/transformers/geoboundaries.md
-          - UN WPP: api/transformers/unwpp.md
-          - UNOCHA: api/transformers/unocha.md
-      - Loaders:
-          - ABM: api/loaders/abm.md
-          - MPM: api/loaders/mpm.md
-      - Models:
-          - SI Model: api/models/si.md
-          - SIR Model: api/models/sir.md
-          - SEIR Model: api/models/seir.md
-          - Plot: api/models/plot.md
-  - Contributing: contributing.md
+    - Home: index.md
+    - Getting Started:
+          - Installation: installation.md
+          - Quick Start: quickstart.md
+    - User Guide: userguide.md
+    - Configuration: configuration.md
+    - Data Sources: datasources.md
+    - Models: models.md
+    - Troubleshooting: troubleshooting.md
+    - Architecture: architecture.md
+    - API Reference:
+          - Core:
+                - CLI: api/cli.md
+                - Config: api/config.md
+                - Utils: api/utils.md
+                - Logger: api/logger.md
+          - Extractors:
+                - GADM: api/extractors/gadm.md
+                - geoBoundaries: api/extractors/geoboundaries.md
+                - WorldPop: api/extractors/worldpop.md
+                - UN WPP: api/extractors/unwpp.md
+                - UNOCHA: api/extractors/unocha.md
+          - Transformers:
+                - GADM: api/transformers/gadm.md
+                - geoBoundaries: api/transformers/geoboundaries.md
+                - UN WPP: api/transformers/unwpp.md
+                - UNOCHA: api/transformers/unocha.md
+          - Loaders:
+                - ABM: api/loaders/abm.md
+                - MPM: api/loaders/mpm.md
+          - Models:
+                - SI Model: api/models/si.md
+                - SIR Model: api/models/sir.md
+                - SEIR Model: api/models/seir.md
+                - Plot: api/models/plot.md
+    - Contributing: contributing.md
 
 # Plugins
 plugins:
-  - search:
-      lang: en
-      separator: '[\s\-\.]+'
-  - git-revision-date-localized:
-      enable_creation_date: true
-      type: date
-  - include-markdown
-  - mkdocstrings:
-      default_handler: python
-      handlers:
-        python:
-          import:
-            - https://docs.python.org/3/objects.inv
-          options:
-            docstring_style: google
-            show_source: true
-            show_root_heading: true
-            show_root_full_path: false
-            show_symbol_type_heading: true
-            show_symbol_type_toc: true
-            signature_crossrefs: true
-            separate_signature: true
-            merge_init_into_class: true
-            docstring_section_style: table
-            members_order: source
-            show_if_no_docstring: false
-            inherited_members: false
-            filters:
-              - "!^_"  # Exclude private members
-            # Suppress warnings about missing type annotations
-            # Types are documented in Google-style docstrings
-            show_signature_annotations: false
-      enable_inventory: true
+    - search:
+          lang: en
+          separator: '[\s\-\.]+'
+    - git-revision-date-localized:
+          enable_creation_date: true
+          type: date
+    - include-markdown
+    - mkdocstrings:
+          default_handler: python
+          handlers:
+              python:
+                  import:
+                      - https://docs.python.org/3/objects.inv
+                  options:
+                      docstring_style: google
+                      show_source: true
+                      show_root_heading: true
+                      show_root_full_path: false
+                      show_symbol_type_heading: true
+                      show_symbol_type_toc: true
+                      signature_crossrefs: true
+                      separate_signature: true
+                      merge_init_into_class: true
+                      docstring_section_style: table
+                      members_order: source
+                      show_if_no_docstring: false
+                      inherited_members: false
+                      filters:
+                          - "!^_" # Exclude private members
+                      # Suppress warnings about missing type annotations
+                      # Types are documented in Google-style docstrings
+                      show_signature_annotations: false
+          enable_inventory: true
 
 # Markdown extensions
 markdown_extensions:
-  # Python Markdown
-  - abbr
-  - admonition
-  - attr_list
-  - def_list
-  - footnotes
-  - md_in_html
-  - tables
-  - toc:
-      permalink: true
-      toc_depth: 3
+    # Python Markdown
+    - abbr
+    - admonition
+    - attr_list
+    - def_list
+    - footnotes
+    - md_in_html
+    - tables
+    - toc:
+          permalink: true
+          toc_depth: 3
 
-  # Python Markdown Extensions
-  - pymdownx.arithmatex:
-      generic: true
-  - pymdownx.betterem:
-      smart_enable: all
-  - pymdownx.caret
-  - pymdownx.details
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.keys
-  - pymdownx.mark
-  - pymdownx.smartsymbols
-  - pymdownx.snippets
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.tabbed:
-      alternate_style: true
-  - pymdownx.tasklist:
-      custom_checkbox: true
-  - pymdownx.tilde
+    # Python Markdown Extensions
+    - pymdownx.arithmatex:
+          generic: true
+    - pymdownx.betterem:
+          smart_enable: all
+    - pymdownx.caret
+    - pymdownx.details
+    - pymdownx.emoji:
+          emoji_index: !!python/name:material.extensions.emoji.twemoji
+          emoji_generator: !!python/name:material.extensions.emoji.to_svg
+    - pymdownx.highlight:
+          anchor_linenums: true
+          line_spans: __span
+          pygments_lang_class: true
+    - pymdownx.inlinehilite
+    - pymdownx.keys
+    - pymdownx.mark
+    - pymdownx.smartsymbols
+    - pymdownx.snippets
+    - pymdownx.superfences:
+          custom_fences:
+              - name: mermaid
+                class: mermaid
+                format: !!python/name:pymdownx.superfences.fence_code_format
+    - pymdownx.tabbed:
+          alternate_style: true
+    - pymdownx.tasklist:
+          custom_checkbox: true
+    - pymdownx.tilde
 
 # Extra configuration
 extra:
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/laser-base/laser-init
+    social:
+        - icon: fontawesome/brands/github
+          link: https://github.com/laser-base/laser-init
 
 # Extra JavaScript for MathJax support
 extra_javascript:
-  - https://polyfill.io/v3/polyfill.min.js?features=es6
-  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+    - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 # Extra CSS (if needed in the future)
 extra_css: []
