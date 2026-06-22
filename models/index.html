@@ -1,0 +1,4038 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A tool to bootstrap spatial epidemiological modeling with LASER by preparing geospatial, population, and demographic data">
+      
+      
+        <meta name="author" content="Institute for Disease Modeling">
+      
+      
+        <link rel="canonical" href="https://laser-base.github.io/laser-init/models/">
+      
+      
+        <link rel="prev" href="../datasources/">
+      
+      
+        <link rel="next" href="../troubleshooting/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>Models - laser-init Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#epidemiological-models-documentation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="laser-init Documentation" class="md-header__button md-logo" aria-label="laser-init Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            laser-init Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Models
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/laser-base/laser-init" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    laser-base/laser-init
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../userguide/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../configuration/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Configuration
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../datasources/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Data Sources
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Models
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/cli/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../contributing/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="laser-init Documentation" class="md-nav__button md-logo" aria-label="laser-init Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    laser-init Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/laser-base/laser-init" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    laser-base/laser-init
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../userguide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-selection-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Selection Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Selection Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-selection-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Selection Matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detailed-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detailed Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#si-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SI Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SI Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compartments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compartments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-transitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Transitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equilibrium-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Equilibrium Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating-an-si-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating an SI Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sir-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SIR Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SIR Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compartments_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compartments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-transitions_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Transitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#threshold-dynamics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Threshold Dynamics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equilibrium-behavior_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Equilibrium Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating-an-sir-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating an SIR Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seir-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SEIR Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SEIR Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compartments_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compartments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-transitions_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Transitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latent-period-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latent Period Distribution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equilibrium-behavior_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Equilibrium Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating-an-seir-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating an SEIR Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Parameters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seir-specific-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SEIR-Specific Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derived-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Derived Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disease-specific-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disease-Specific Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spatial-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spatial Connectivity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Spatial Connectivity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gravity-model-formula" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gravity Model Formula
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatial-transmission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spatial Transmission
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#customizing-spatial-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customizing Spatial Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vital-dynamics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vital Dynamics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Vital Dynamics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#births" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Births
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deaths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deaths
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#demographic-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Demographic Effects
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-simulations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Simulations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running Simulations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#with-custom-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With Custom Config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#with-custom-data-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With Custom Data Directory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extending Models
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extending Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-interventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding Interventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#converting-seir-to-seirs-waning-immunity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting SEIR to SEIRS (Waning Immunity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-age-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding Age Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mathematical-background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mathematical Background
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mathematical Background">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-reproduction-number-r0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Reproduction Number (R0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#effective-reproduction-number-rt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Effective Reproduction Number (Rt)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attack-rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attack Rate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calibration-approaches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calibration Approaches
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Further Reading
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Further Reading">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#compartmental-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compartmental Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatial-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spatial Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#laser-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LASER Framework
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_1" id="__nav_9_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Core
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/logger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logger
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_2" id="__nav_9_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extractors
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Extractors
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/extractors/gadm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GADM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/extractors/geoboundaries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    geoBoundaries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/extractors/worldpop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    WorldPop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/extractors/unwpp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UN WPP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/extractors/unocha/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UNOCHA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_3" id="__nav_9_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Transformers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/transformers/gadm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GADM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/transformers/geoboundaries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    geoBoundaries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/transformers/unwpp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UN WPP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/transformers/unocha/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UNOCHA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_4" id="__nav_9_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loaders
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Loaders
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/loaders/abm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ABM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/loaders/mpm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MPM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_5" id="__nav_9_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/models/si/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SI Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/models/sir/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SIR Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/models/seir/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SEIR Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/models/plot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-selection-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Selection Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Selection Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-selection-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Selection Matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detailed-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detailed Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#si-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SI Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SI Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compartments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compartments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-transitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Transitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equilibrium-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Equilibrium Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating-an-si-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating an SI Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sir-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SIR Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SIR Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compartments_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compartments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-transitions_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Transitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#threshold-dynamics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Threshold Dynamics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equilibrium-behavior_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Equilibrium Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating-an-sir-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating an SIR Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seir-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SEIR Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SEIR Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compartments_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compartments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-transitions_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Transitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latent-period-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latent Period Distribution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equilibrium-behavior_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Equilibrium Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating-an-seir-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating an SEIR Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Parameters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seir-specific-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SEIR-Specific Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derived-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Derived Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disease-specific-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disease-Specific Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spatial-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spatial Connectivity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Spatial Connectivity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gravity-model-formula" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gravity Model Formula
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatial-transmission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spatial Transmission
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#customizing-spatial-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customizing Spatial Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vital-dynamics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vital Dynamics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Vital Dynamics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#births" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Births
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deaths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deaths
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#demographic-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Demographic Effects
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-simulations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Simulations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running Simulations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#with-custom-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With Custom Config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#with-custom-data-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With Custom Data Directory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extending Models
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extending Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-interventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding Interventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#converting-seir-to-seirs-waning-immunity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting SEIR to SEIRS (Waning Immunity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-age-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding Age Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mathematical-background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mathematical Background
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mathematical Background">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-reproduction-number-r0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Reproduction Number (R0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#effective-reproduction-number-rt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Effective Reproduction Number (Rt)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attack-rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attack Rate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calibration-approaches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calibration Approaches
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Further Reading
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Further Reading">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#compartmental-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compartmental Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatial-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spatial Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#laser-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LASER Framework
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="epidemiological-models-documentation">Epidemiological Models Documentation<a class="headerlink" href="#epidemiological-models-documentation" title="Permanent link">&para;</a></h1>
+<p>Comprehensive guide to the epidemiological models supported by <code>laser-init</code>.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#model-selection-guide">Model Selection Guide</a></li>
+<li><a href="#si-model">SI Model</a></li>
+<li><a href="#sir-model">SIR Model</a></li>
+<li><a href="#seir-model">SEIR Model</a></li>
+<li><a href="#model-parameters">Model Parameters</a></li>
+<li><a href="#spatial-connectivity">Spatial Connectivity</a></li>
+<li><a href="#vital-dynamics">Vital Dynamics</a></li>
+<li><a href="#running-simulations">Running Simulations</a></li>
+<li><a href="#extending-models">Extending Models</a></li>
+</ol>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p><code>laser-init</code> generates ready-to-run spatial disease models using the <a href="https://github.com/laser-base/laser-generic">LASER</a> framework. The tool supports three classic compartmental model types:</p>
+<ul>
+<li><strong>SI</strong> (Susceptible-Infectious)</li>
+<li><strong>SIR</strong> (Susceptible-Infectious-Recovered)</li>
+<li><strong>SEIR</strong> (Susceptible-Exposed-Infectious-Recovered)</li>
+</ul>
+<p>All models are:</p>
+<ul>
+<li><strong>Spatial</strong>: Disease spreads across administrative regions via gravity model</li>
+<li><strong>Stochastic</strong>: Individual-level Monte Carlo simulation</li>
+<li><strong>Demographic</strong>: Includes births and deaths based on vital statistics</li>
+<li><strong>Agent-based</strong>: Tracks individuals with state transitions</li>
+</ul>
+<h2 id="model-selection-guide">Model Selection Guide<a class="headerlink" href="#model-selection-guide" title="Permanent link">&para;</a></h2>
+<h3 id="quick-selection-matrix">Quick Selection Matrix<a class="headerlink" href="#quick-selection-matrix" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Disease Characteristic</th>
+<th>Recommended Model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Permanent infection (e.g., HIV)</td>
+<td>SI</td>
+</tr>
+<tr>
+<td>Lifelong immunity (e.g., measles)</td>
+<td>SIR</td>
+</tr>
+<tr>
+<td>Temporary immunity (e.g., influenza)</td>
+<td>SEIR or SEIRS*</td>
+</tr>
+<tr>
+<td>Incubation period (e.g., COVID-19)</td>
+<td>SEIR</td>
+</tr>
+<tr>
+<td>Fast onset (e.g., norovirus)</td>
+<td>SIR</td>
+</tr>
+<tr>
+<td>Vector-borne (e.g., malaria)</td>
+<td>Custom extension**</td>
+</tr>
+</tbody>
+</table>
+<p>* SEIRS requires manual modification (see <a href="#extending-models">Extending Models</a>)</p>
+<p>** Requires custom LASER components</p>
+<h3 id="detailed-comparison">Detailed Comparison<a class="headerlink" href="#detailed-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>SI</th>
+<th>SIR</th>
+<th>SEIR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Compartments</strong></td>
+<td>2 (S, I)</td>
+<td>3 (S, I, R)</td>
+<td>4 (S, E, I, R)</td>
+</tr>
+<tr>
+<td><strong>Immunity</strong></td>
+<td>None</td>
+<td>Permanent</td>
+<td>Permanent</td>
+</tr>
+<tr>
+<td><strong>Incubation Period</strong></td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td>2 (R<sub>0</sub>, duration)</td>
+<td>2 (R<sub>0</sub>, duration)</td>
+<td>3 (R<sub>0</sub>, exposed duration, infectious duration)</td>
+</tr>
+<tr>
+<td><strong>Computational Cost</strong></td>
+<td>Lowest</td>
+<td>Low</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Best For</strong></td>
+<td>Chronic infections</td>
+<td>Acute immunizing diseases</td>
+<td>Diseases with latent period</td>
+</tr>
+</tbody>
+</table>
+<h2 id="si-model">SI Model<a class="headerlink" href="#si-model" title="Permanent link">&para;</a></h2>
+<h3 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">&para;</a></h3>
+<p>The simplest epidemic model. Individuals are either Susceptible (S) or Infectious (I). Once infected, individuals remain infectious indefinitely.</p>
+<h3 id="compartments">Compartments<a class="headerlink" href="#compartments" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>S ── β ──&gt; I
+</span></code></pre></div>
+<ul>
+<li><strong>S (Susceptible)</strong>: Can be infected</li>
+<li><strong>I (Infectious)</strong>: Infected and can transmit to susceptibles</li>
+</ul>
+<h3 id="state-transitions">State Transitions<a class="headerlink" href="#state-transitions" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Infection</strong>: S → I (rate = β × I / N)</li>
+</ol>
+<p>where:
+- β = transmission rate (R<sub>0</sub> / infectious_duration)
+- I = number of infectious individuals
+- N = total population</p>
+<h3 id="use-cases">Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>HIV/AIDS</strong> (without treatment)</li>
+<li><strong>Chronic diseases</strong> with no recovery</li>
+<li><strong>Persistent infections</strong></li>
+<li><strong>Theoretical studies</strong> of epidemic thresholds</li>
+</ul>
+<h3 id="equilibrium-behavior">Equilibrium Behavior<a class="headerlink" href="#equilibrium-behavior" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Infection prevalence grows until all susceptibles are infected</li>
+<li>No endemic equilibrium (unless balanced by births/deaths)</li>
+<li>Final size: 100% (in closed population)</li>
+</ul>
+<h3 id="generating-an-si-model">Generating an SI Model<a class="headerlink" href="#generating-an-si-model" title="Permanent link">&para;</a></h3>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>laser-init<span class="w"> </span>KEN<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2010</span><span class="w"> </span><span class="m">2020</span><span class="w"> </span>--model<span class="w"> </span>SI
+</span></code></pre></div>
+<h2 id="sir-model">SIR Model<a class="headerlink" href="#sir-model" title="Permanent link">&para;</a></h2>
+<h3 id="overview_2">Overview<a class="headerlink" href="#overview_2" title="Permanent link">&para;</a></h3>
+<p>Classic epidemic model with recovery. Individuals move from Susceptible to Infectious to Recovered, acquiring permanent immunity.</p>
+<h3 id="compartments_1">Compartments<a class="headerlink" href="#compartments_1" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>S ── β ──&gt; I ── γ ──&gt; R
+</span></code></pre></div>
+<ul>
+<li><strong>S (Susceptible)</strong>: Can be infected</li>
+<li><strong>I (Infectious)</strong>: Infected and transmitting</li>
+<li><strong>R (Recovered)</strong>: Immune (permanent)</li>
+</ul>
+<h3 id="state-transitions_1">State Transitions<a class="headerlink" href="#state-transitions_1" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Infection</strong>: S → I (rate = β × I / N)</li>
+<li><strong>Recovery</strong>: I → R (rate = γ = 1 / infectious_duration)</li>
+</ol>
+<h3 id="threshold-dynamics">Threshold Dynamics<a class="headerlink" href="#threshold-dynamics" title="Permanent link">&para;</a></h3>
+<p><strong>Basic Reproduction Number (R<sub>0</sub>)</strong>: Average secondary infections from one case</p>
+<ul>
+<li>R<sub>0</sub> &gt; 1: Epidemic occurs</li>
+<li>R<sub>0</sub> = 1: Endemic equilibrium</li>
+<li>R<sub>0</sub> &lt; 1: Disease dies out</li>
+</ul>
+<p><strong>Epidemic threshold</strong>: Requires S0 &gt; N/R<sub>0</sub> to start epidemic</p>
+<h3 id="use-cases_1">Use Cases<a class="headerlink" href="#use-cases_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Measles, mumps, rubella</strong> (lifelong immunity)</li>
+<li><strong>Chickenpox</strong></li>
+<li><strong>Smallpox</strong> (historical)</li>
+<li><strong>SARS-CoV-1</strong> (2002-2003)</li>
+<li><strong>Acute infections</strong> with immunity</li>
+</ul>
+<h3 id="equilibrium-behavior_1">Equilibrium Behavior<a class="headerlink" href="#equilibrium-behavior_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Endemic equilibrium possible with births/deaths</li>
+<li>Final size &lt; 100% (some susceptibles remain)</li>
+<li>Herd immunity threshold: 1 - 1/R<sub>0</sub></li>
+</ul>
+<h3 id="generating-an-sir-model">Generating an SIR Model<a class="headerlink" href="#generating-an-sir-model" title="Permanent link">&para;</a></h3>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>laser-init<span class="w"> </span>ETH<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2010</span><span class="w"> </span><span class="m">2020</span><span class="w"> </span>--model<span class="w"> </span>SIR
+</span></code></pre></div>
+<h2 id="seir-model">SEIR Model<a class="headerlink" href="#seir-model" title="Permanent link">&para;</a></h2>
+<h3 id="overview_3">Overview<a class="headerlink" href="#overview_3" title="Permanent link">&para;</a></h3>
+<p>Extended SIR model with exposed (latent) compartment. Individuals go through an incubation period (E) before becoming infectious (I).</p>
+<h3 id="compartments_2">Compartments<a class="headerlink" href="#compartments_2" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>S ── β ──&gt; E ── σ ──&gt; I ── γ ──&gt; R
+</span></code></pre></div>
+<ul>
+<li><strong>S (Susceptible)</strong>: Can be infected</li>
+<li><strong>E (Exposed)</strong>: Infected but not yet infectious (latent period)</li>
+<li><strong>I (Infectious)</strong>: Infectious and transmitting</li>
+<li><strong>R (Recovered)</strong>: Immune (permanent)</li>
+</ul>
+<h3 id="state-transitions_2">State Transitions<a class="headerlink" href="#state-transitions_2" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Infection</strong>: S → E (rate = β × I / N)</li>
+<li><strong>Progression</strong>: E → I (rate = σ, from exposed duration distribution)</li>
+<li><strong>Recovery</strong>: I → R (rate = γ = 1 / infectious_duration)</li>
+</ol>
+<h3 id="latent-period-distribution">Latent Period Distribution<a class="headerlink" href="#latent-period-distribution" title="Permanent link">&para;</a></h3>
+<p><code>laser-init</code> uses a <strong>gamma distribution</strong> for the exposed period (this is easily changed by editing the model script and using one of the <a href="https://laser.idmod.org/laser-generic/reference/laser/core/distributions/">supported distributions</a>):</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">exposed_duration</span> <span class="o">~</span> <span class="n">Gamma</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">mean</span> <span class="o">=</span> <span class="n">shape</span> <span class="err">×</span> <span class="n">scale</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">variance</span> <span class="o">=</span> <span class="n">shape</span> <span class="err">×</span> <span class="n">scale</span><span class="err">²</span>
+</span></code></pre></div>
+<p>Default parameters:
+- shape = 4.5
+- scale = 1.0
+- mean = 4.5 days</p>
+<h3 id="use-cases_2">Use Cases<a class="headerlink" href="#use-cases_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>COVID-19</strong> (2-5 day incubation)</li>
+<li><strong>Influenza</strong> (1-4 day incubation)</li>
+<li><strong>Ebola</strong> (8-10 day incubation)</li>
+<li><strong>MERS-CoV</strong></li>
+<li><strong>Most viral respiratory infections</strong></li>
+</ul>
+<h3 id="equilibrium-behavior_2">Equilibrium Behavior<a class="headerlink" href="#equilibrium-behavior_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Similar to SIR but delayed by latent period</li>
+<li>Peak occurs later than SIR with same R<sub>0</sub></li>
+<li>Final size approximately same as SIR</li>
+</ul>
+<h3 id="generating-an-seir-model">Generating an SEIR Model<a class="headerlink" href="#generating-an-seir-model" title="Permanent link">&para;</a></h3>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>laser-init<span class="w"> </span>NGA<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2010</span><span class="w"> </span><span class="m">2020</span><span class="w"> </span>--model<span class="w"> </span>SEIR<span class="w">  </span><span class="c1"># Default model type</span>
+</span></code></pre></div>
+<h2 id="model-parameters">Model Parameters<a class="headerlink" href="#model-parameters" title="Permanent link">&para;</a></h2>
+<h3 id="core-parameters">Core Parameters<a class="headerlink" href="#core-parameters" title="Permanent link">&para;</a></h3>
+<p>All models share these common parameters:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Symbol</th>
+<th>Unit</th>
+<th>Description</th>
+<th>Typical Range</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Basic Reproduction Number</strong></td>
+<td>R<sub>0</sub></td>
+<td>dimensionless</td>
+<td>Average secondary infections</td>
+<td>1.5 - 20+</td>
+</tr>
+<tr>
+<td><strong>Infectious Duration</strong></td>
+<td>1/γ</td>
+<td>days</td>
+<td>Mean time infectious</td>
+<td>1 - 30 days</td>
+</tr>
+<tr>
+<td><strong>Simulation Duration</strong></td>
+<td>T</td>
+<td>years</td>
+<td>Length of simulation</td>
+<td>1 - 50 years</td>
+</tr>
+</tbody>
+</table>
+<h3 id="seir-specific-parameters">SEIR-Specific Parameters<a class="headerlink" href="#seir-specific-parameters" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Symbol</th>
+<th>Unit</th>
+<th>Description</th>
+<th>Typical Range</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Exposed Duration Shape</strong></td>
+<td>k</td>
+<td>dimensionless</td>
+<td>Gamma distribution shape</td>
+<td>2 - 10</td>
+</tr>
+<tr>
+<td><strong>Exposed Duration Scale</strong></td>
+<td>θ</td>
+<td>days</td>
+<td>Gamma distribution scale</td>
+<td>0.5 - 5 days</td>
+</tr>
+</tbody>
+</table>
+<h3 id="derived-parameters">Derived Parameters<a class="headerlink" href="#derived-parameters" title="Permanent link">&para;</a></h3>
+<p>Automatically calculated:</p>
+<ul>
+<li><strong>Transmission rate</strong>: β = R<sub>0</sub> / infectious_duration</li>
+<li><strong>Recovery rate</strong>: γ = 1 / infectious_duration</li>
+<li><strong>Progression rate</strong>: σ ~ Gamma(shape, scale)</li>
+<li><strong>Total ticks</strong>: nticks = nyears × 365</li>
+</ul>
+<h3 id="disease-specific-parameters">Disease-Specific Parameters<a class="headerlink" href="#disease-specific-parameters" title="Permanent link">&para;</a></h3>
+<p>Examples for common diseases:</p>
+<h4 id="influenza">Influenza<a class="headerlink" href="#influenza" title="Permanent link">&para;</a></h4>
+<ul>
+<li>R<sub>0</sub>: 1.5 - 2.5</li>
+<li>Exposed period: 1-4 days (shape=3, scale=0.7)</li>
+<li>Infectious period: 5-7 days</li>
+</ul>
+<h4 id="covid-19-original">COVID-19 (Original)<a class="headerlink" href="#covid-19-original" title="Permanent link">&para;</a></h4>
+<ul>
+<li>R<sub>0</sub>: 2.5 - 3.5</li>
+<li>Exposed period: 3-5 days (shape=4.5, scale=1.0)</li>
+<li>Infectious period: 7-10 days</li>
+</ul>
+<h4 id="measles">Measles<a class="headerlink" href="#measles" title="Permanent link">&para;</a></h4>
+<ul>
+<li>R<sub>0</sub>: 12 - 18</li>
+<li>Exposed period: 10-12 days</li>
+<li>Infectious period: 8 days</li>
+</ul>
+<h4 id="ebola">Ebola<a class="headerlink" href="#ebola" title="Permanent link">&para;</a></h4>
+<ul>
+<li>R<sub>0</sub>: 1.5 - 2.5</li>
+<li>Exposed period: 8-10 days</li>
+<li>Infectious period: 10 days</li>
+</ul>
+<h2 id="spatial-connectivity">Spatial Connectivity<a class="headerlink" href="#spatial-connectivity" title="Permanent link">&para;</a></h2>
+<p>All models include spatial coupling via a <strong>gravity model</strong>.</p>
+<h3 id="gravity-model-formula">Gravity Model Formula<a class="headerlink" href="#gravity-model-formula" title="Permanent link">&para;</a></h3>
+<p>Movement rate between regions i and j:</p>
+<p><span class="arithmatex">\(M_{i,j} = \kappa \times \frac {(P^a_i \times P^b_j)} {d_{i,j}^c}\)</span></p>
+<p>where:</p>
+<ul>
+<li>κ = scaling constant</li>
+<li>P<sub>i</sub>, P<sub>j</sub> = populations of regions i and j</li>
+<li>d(i,j) = distance between regions</li>
+<li>a = source population, P<sub>i</sub>, exponent (typically 1)</li>
+<li>b = destination population, P<sub>j</sub>, exponent (typically 1)</li>
+<li>c = distance exponent (typically 1-2)</li>
+</ul>
+<h3 id="spatial-transmission">Spatial Transmission<a class="headerlink" href="#spatial-transmission" title="Permanent link">&para;</a></h3>
+<p>Infections can occur:</p>
+<ol>
+<li><strong>Locally</strong>: Within the same administrative region (most common)</li>
+<li><strong>Via mobility</strong>: Through movement between regions (gravity model)</li>
+</ol>
+<p>Effective transmission rate:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>β_effective = β_local + β_spatial
+</span></code></pre></div></p>
+<h3 id="customizing-spatial-parameters">Customizing Spatial Parameters<a class="headerlink" href="#customizing-spatial-parameters" title="Permanent link">&para;</a></h3>
+<p>Currently, gravity model parameters are hard-coded in the generated model scripts. To modify:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># In seir.py (or sir.py, si.py)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1"># Add after model initialization:</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">laser.generic.movement</span><span class="w"> </span><span class="kn">import</span> <span class="n">GravityModel</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">gravity</span> <span class="o">=</span> <span class="n">GravityModel</span><span class="p">(</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="n">model</span><span class="p">,</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="n">kappa</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>      <span class="c1"># Scaling constant</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>    <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>        <span class="c1"># Distance exponent</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>    <span class="n">max_distance</span><span class="o">=</span><span class="mi">500</span>  <span class="c1"># km, optional distance cutoff</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="p">)</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="n">model</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gravity</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="vital-dynamics">Vital Dynamics<a class="headerlink" href="#vital-dynamics" title="Permanent link">&para;</a></h2>
+<p>All generated models include births and deaths based on demographic data.</p>
+<h3 id="births">Births<a class="headerlink" href="#births" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Rate</strong>: Crude Birth Rate (CBR) from UN WPP</li>
+<li><strong>Distribution</strong>: Age distribution from UN WPP (base year)</li>
+<li><strong>Assignment</strong>: New births distributed across regions proportional to population</li>
+</ul>
+<h4 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">laser.generic.vitaldynamics</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirthsByCBR</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">laser.core.demographics</span><span class="w"> </span><span class="kn">import</span> <span class="n">AliasedDistribution</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Age distribution for new births</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">pyramid</span> <span class="o">=</span> <span class="n">AliasedDistribution</span><span class="p">(</span><span class="n">pop_df</span><span class="o">.</span><span class="n">PopTotal</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">())</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Birth rates over time</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="n">birthrates</span> <span class="o">=</span> <span class="n">ValuesMap</span><span class="o">.</span><span class="n">from_timeseries</span><span class="p">(</span><span class="n">daily_cbr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">scenario</span><span class="p">))</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="c1"># Add births component</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="n">births</span> <span class="o">=</span> <span class="n">BirthsByCBR</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">birthrates</span><span class="p">,</span> <span class="n">pyramid</span><span class="p">)</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="n">model</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">births</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="deaths">Deaths<a class="headerlink" href="#deaths" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Rate</strong>: Based on life table from UN WPP</li>
+<li><strong>Distribution</strong>: Age-specific mortality via Kaplan-Meier estimator</li>
+<li><strong>Implementation</strong>: Survival curves applied to all compartments</li>
+</ul>
+<h4 id="implementation_1">Implementation<a class="headerlink" href="#implementation_1" title="Permanent link">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">laser.generic.vitaldynamics</span><span class="w"> </span><span class="kn">import</span> <span class="n">MortalityByEstimator</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">laser.core.demographics</span><span class="w"> </span><span class="kn">import</span> <span class="n">KaplanMeierEstimator</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Life table survival curve</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="n">survival</span> <span class="o">=</span> <span class="n">KaplanMeierEstimator</span><span class="p">(</span><span class="n">exp_df</span><span class="o">.</span><span class="n">cumulative_deaths</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">())</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Add mortality component</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="n">mortality</span> <span class="o">=</span> <span class="n">MortalityByEstimator</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">survival</span><span class="p">)</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="n">model</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mortality</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="demographic-effects">Demographic Effects<a class="headerlink" href="#demographic-effects" title="Permanent link">&para;</a></h3>
+<p>With vital dynamics:</p>
+<ul>
+<li><strong>Population growth</strong>: Can increase or decrease over simulation</li>
+<li><strong>Age structure</strong>: Maintained via age-specific births/deaths</li>
+<li><strong>Endemic equilibrium</strong>: Disease can persist via birth of new susceptibles</li>
+<li><strong>Long-term dynamics</strong>: Demographic changes affect epidemic patterns</li>
+</ul>
+<h2 id="running-simulations">Running Simulations<a class="headerlink" href="#running-simulations" title="Permanent link">&para;</a></h2>
+<h3 id="basic-execution">Basic Execution<a class="headerlink" href="#basic-execution" title="Permanent link">&para;</a></h3>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nb">cd</span><span class="w"> </span>KEN/2010
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>python3<span class="w"> </span>./seir.py
+</span></code></pre></div>
+<h3 id="with-custom-config">With Custom Config<a class="headerlink" href="#with-custom-config" title="Permanent link">&para;</a></h3>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python3<span class="w"> </span>./seir.py<span class="w"> </span>--config<span class="w"> </span>custom_config.yaml
+</span></code></pre></div>
+<h3 id="with-custom-data-directory">With Custom Data Directory<a class="headerlink" href="#with-custom-data-directory" title="Permanent link">&para;</a></h3>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python3<span class="w"> </span>./seir.py<span class="w"> </span>--data-dir<span class="w"> </span>/path/to/data
+</span></code></pre></div>
+<h3 id="output">Output<a class="headerlink" href="#output" title="Permanent link">&para;</a></h3>
+<p>Models generate plots in the output directory:
+- Compartment dynamics (S, E, I, R over time)
+- Spatial spread (choropleth snapshots)
+- Effective reproduction number (Rt)
+- Individual region trajectories
+- Final attack rates</p>
+<p>See <a href="../userguide/#interpreting-results">User Guide</a> for detailed interpretation.</p>
+<h2 id="extending-models">Extending Models<a class="headerlink" href="#extending-models" title="Permanent link">&para;</a></h2>
+<h3 id="adding-interventions">Adding Interventions<a class="headerlink" href="#adding-interventions" title="Permanent link">&para;</a></h3>
+<h4 id="vaccination-campaign">Vaccination Campaign<a class="headerlink" href="#vaccination-campaign" title="Permanent link">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># In generated model script, after components definition</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">Vaccination</span><span class="p">:</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">start_day</span><span class="p">,</span> <span class="n">rate</span><span class="p">,</span> <span class="n">efficacy</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start_day</span> <span class="o">=</span> <span class="n">start_day</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">rate</span> <span class="o">=</span> <span class="n">rate</span>  <span class="c1"># Daily vaccination rate</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">efficacy</span> <span class="o">=</span> <span class="n">efficacy</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tick</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_day</span><span class="p">:</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>            <span class="c1"># Vaccinate fraction of susceptibles</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>            <span class="n">to_vaccinate</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">scenario</span><span class="o">.</span><span class="n">S</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>            <span class="n">effective</span> <span class="o">=</span> <span class="p">(</span><span class="n">to_vaccinate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">efficacy</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">scenario</span><span class="o">.</span><span class="n">S</span> <span class="o">-=</span> <span class="n">effective</span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">scenario</span><span class="o">.</span><span class="n">R</span> <span class="o">+=</span> <span class="n">effective</span>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="c1"># Add to model</span>
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="n">vaccination</span> <span class="o">=</span> <span class="n">Vaccination</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">start_day</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">efficacy</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="n">model</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vaccination</span><span class="p">)</span>
+</span></code></pre></div>
+<h4 id="social-distancing">Social Distancing<a class="headerlink" href="#social-distancing" title="Permanent link">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SocialDistancing</span><span class="p">:</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">start_day</span><span class="p">,</span> <span class="n">end_day</span><span class="p">,</span> <span class="n">reduction</span><span class="p">):</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start_day</span> <span class="o">=</span> <span class="n">start_day</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">end_day</span> <span class="o">=</span> <span class="n">end_day</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">reduction</span> <span class="o">=</span> <span class="n">reduction</span>  <span class="c1"># e.g., 0.5 for 50% reduction</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">original_beta</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tick</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_day</span><span class="p">:</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">original_beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">beta</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">beta</span> <span class="o">*=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="p">)</span>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tick</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_day</span><span class="p">:</span>
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_beta</span>
+</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>
+</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="c1"># Add to model</span>
+</span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="n">distancing</span> <span class="o">=</span> <span class="n">SocialDistancing</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">start_day</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">end_day</span><span class="o">=</span><span class="mi">270</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</span><span id="__span-15-18"><a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="n">model</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">distancing</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="converting-seir-to-seirs-waning-immunity">Converting SEIR to SEIRS (Waning Immunity)<a class="headerlink" href="#converting-seir-to-seirs-waning-immunity" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Add after SEIR component definitions</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">WaningImmunity</span><span class="p">:</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">waning_rate</span><span class="p">):</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">waning_rate</span> <span class="o">=</span> <span class="n">waning_rate</span>  <span class="c1"># Daily rate of immunity loss</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>        <span class="c1"># Move R back to S based on waning rate</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>        <span class="n">to_wane</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">scenario</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">waning_rate</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">scenario</span><span class="o">.</span><span class="n">R</span> <span class="o">-=</span> <span class="n">to_wane</span>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">scenario</span><span class="o">.</span><span class="n">S</span> <span class="o">+=</span> <span class="n">to_wane</span>
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="c1"># Add to model (after r component)</span>
+</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="n">waning</span> <span class="o">=</span> <span class="n">WaningImmunity</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">waning_rate</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">365</span><span class="p">)</span>  <span class="c1"># 1-year average immunity</span>
+</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="n">model</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">waning</span><span class="p">)</span>  <span class="c1"># Insert before mortality</span>
+</span></code></pre></div>
+<h3 id="adding-age-structure">Adding Age Structure<a class="headerlink" href="#adding-age-structure" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Modify initialization to track age groups</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="n">age_groups</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;0-4&quot;</span><span class="p">,</span> <span class="s2">&quot;5-14&quot;</span><span class="p">,</span> <span class="s2">&quot;15-64&quot;</span><span class="p">,</span> <span class="s2">&quot;65+&quot;</span><span class="p">]</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="k">for</span> <span class="n">age</span> <span class="ow">in</span> <span class="n">age_groups</span><span class="p">:</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>    <span class="n">scenario</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;S_</span><span class="si">{</span><span class="n">age</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">initial_population_by_age</span><span class="p">[</span><span class="n">age</span><span class="p">]</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>    <span class="n">scenario</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;I_</span><span class="si">{</span><span class="n">age</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>    <span class="n">scenario</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;R_</span><span class="si">{</span><span class="n">age</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="c1"># Modify transmission to account for age-specific contact matrices</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="c1"># (requires more extensive modification - see LASER documentation)</span>
+</span></code></pre></div>
+<h2 id="mathematical-background">Mathematical Background<a class="headerlink" href="#mathematical-background" title="Permanent link">&para;</a></h2>
+<h3 id="basic-reproduction-number-r0">Basic Reproduction Number (R<sub>0</sub>)<a class="headerlink" href="#basic-reproduction-number-r0" title="Permanent link">&para;</a></h3>
+<p>Definition: Average number of secondary infections from one infectious individual in a fully susceptible population.</p>
+<p><strong>Interpretation</strong>:</p>
+<ul>
+<li>R<sub>0</sub> = 2: Each case infects 2 others on average</li>
+<li>R<sub>0</sub> &gt; 1: Epidemic growth</li>
+<li>R<sub>0</sub> = 1: Endemic equilibrium</li>
+<li>R<sub>0</sub> &lt; 1: Disease extinction</li>
+</ul>
+<p><strong>Calculation</strong>: R<sub>0</sub> = β / γ = β × infectious_duration</p>
+<p><strong>Herd immunity threshold</strong>: <span class="arithmatex">\(H = 1 - 1/R_0\)</span></p>
+<h3 id="effective-reproduction-number-rt">Effective Reproduction Number (Rt)<a class="headerlink" href="#effective-reproduction-number-rt" title="Permanent link">&para;</a></h3>
+<p>Time-varying reproduction number accounting for depletion of susceptibles:</p>
+<p><span class="arithmatex">\(R_t = R_0 \times (S(t) / N)\)</span></p>
+<p>When R<sub>t</sub> &lt; 1, epidemic is declining.</p>
+<h3 id="attack-rate">Attack Rate<a class="headerlink" href="#attack-rate" title="Permanent link">&para;</a></h3>
+<p>Proportion of population infected over the entire epidemic:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>Attack Rate = (R_final - R_initial) / N
+</span></code></pre></div>
+<h2 id="model-validation">Model Validation<a class="headerlink" href="#model-validation" title="Permanent link">&para;</a></h2>
+<h3 id="calibration-approaches">Calibration Approaches<a class="headerlink" href="#calibration-approaches" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Literature values</strong>: Use published R<sub>0</sub> and duration parameters</li>
+<li><strong>Historical fit</strong>: Calibrate to past outbreak data</li>
+<li><strong>Expert elicitation</strong>: Consult epidemiologists for parameter ranges</li>
+<li><strong>Sensitivity analysis</strong>: Test parameter uncertainty</li>
+</ol>
+<h3 id="validation-checks">Validation Checks<a class="headerlink" href="#validation-checks" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Peak timing reasonable for disease?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Attack rate within expected range?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Spatial spread patterns realistic?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Compartment totals sum to population?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> No negative population values?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Demographics match input data?</li>
+</ul>
+<h2 id="further-reading">Further Reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
+<h3 id="compartmental-models">Compartmental Models<a class="headerlink" href="#compartmental-models" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Keeling &amp; Rohani (2008). <em>Modeling Infectious Diseases in Humans and Animals</em>. Princeton University Press.</li>
+<li>Vynnycky &amp; White (2010). <em>An Introduction to Infectious Disease Modelling</em>. Oxford University Press.</li>
+</ul>
+<h3 id="spatial-models">Spatial Models<a class="headerlink" href="#spatial-models" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Riley (2007). Large-scale spatial-transmission models of infectious disease. <em>Science</em>, 316(5829), 1298-1301.</li>
+<li>Balcan et al. (2009). Multiscale mobility networks and the spatial spreading of infectious diseases. <em>PNAS</em>, 106(51), 21484-21489.</li>
+</ul>
+<h3 id="laser-framework">LASER Framework<a class="headerlink" href="#laser-framework" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="https://github.com/laser-base/laser-core">laser-core</a></li>
+<li><a href="https://github.com/laser-base/laser-generic">laser-generic</a></li>
+<li><a href="https://laser.idmod.org/laser-generic/">LASER documentation</a></li>
+</ul>
+<h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
+<p>For model questions:</p>
+<ul>
+<li><a href="../userguide/">User Guide</a> - Comprehensive workflows</li>
+<li><a href="../configuration/">Configuration Guide</a> - Parameter reference</li>
+<li><a href="https://github.com/laser-base/laser-init/issues">GitHub Issues</a> - Technical support</li>
+</ul>
+<hr />
+<p><strong>Last Updated</strong>: March 2026</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 22, 2026 18:00:57 UTC">June 22, 2026</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 22, 2026 18:00:57 UTC">June 22, 2026</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../datasources/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Data Sources">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Data Sources
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../troubleshooting/" class="md-footer__link md-footer__link--next" aria-label="Next: Troubleshooting">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Troubleshooting
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 Institute for Disease Modeling
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/laser-base/laser-init" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.footer", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
