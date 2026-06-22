@@ -9,7 +9,6 @@
 - Python 3.10 or higher
 - Recommended: [uv](https://docs.astral.sh/uv/) for fast dependency management
 - Internet connection for downloading data sources
-- ~500MB-2GB of disk space for cached data (varies by country and data source)
 
 ## Installation
 
