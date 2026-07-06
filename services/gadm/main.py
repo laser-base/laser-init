@@ -43,7 +43,9 @@ def _download(iso: str) -> Path:
     logger.info("Downloading %s ...", url)
 
     # Write to a temp file first — avoids a partial file being treated as cached
-    tmp = Path(tempfile.mktemp(dir=dest.parent, suffix=".tmp"))
+    tmp_fd, tmp_name = tempfile.mkstemp(dir=dest.parent, suffix=".tmp")
+    os.close(tmp_fd)
+    tmp = Path(tmp_name)
     try:
         with httpx.stream("GET", url, follow_redirects=True, timeout=600) as r:
             if r.status_code == 404:

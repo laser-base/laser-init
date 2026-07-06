@@ -7,15 +7,13 @@ and file writers. All tests are offline — network calls are mocked.
 import json
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import geopandas as gpd
 import pandas as pd
 import pytest
-from shapely.geometry import box
 
 from laser.init import generate as gen
-
 
 # ── Sample data shared across tests ───────────────────────────────────────────
 
@@ -99,40 +97,52 @@ class TestArgParsing:
         assert exc_info.value.code != 0
 
     def test_default_shape_source_is_unocha(self, tmp_path):
-        """--shape-source defaults to 'unocha' when not specified."""
+        """--shape-source defaults to 'unocha' when not specified.
+
+        Patches _default_shapes_url to return a known sentinel per source, so
+        the assertion is independent of any laser_config.yaml on the dev's box.
+        """
         called_urls = []
 
         def capture_shapes(url, iso, level):
             called_urls.append(url)
             return SAMPLE_FC
+
+        def fake_default(source):
+            return f"http://test-{source}.example"
 
         with patch.object(sys, "argv", ["laser-generate", "NGA", "1", "2020", "2020",
                                          "--output-dir", str(tmp_path)]):
-            with patch.object(gen, "fetch_shapes", side_effect=capture_shapes):
-                with patch.object(gen, "fetch_population", return_value=SAMPLE_POP):
-                    with patch.object(gen, "fetch_demographics", return_value=SAMPLE_DEMO):
-                        gen.main()
+            with patch.object(gen, "_default_shapes_url", side_effect=fake_default):
+                with patch.object(gen, "fetch_shapes", side_effect=capture_shapes):
+                    with patch.object(gen, "fetch_population", return_value=SAMPLE_POP):
+                        with patch.object(gen, "fetch_demographics", return_value=SAMPLE_DEMO):
+                            gen.main()
 
         assert len(called_urls) == 1
-        assert "8103" in called_urls[0]  # unocha port
+        assert "test-unocha" in called_urls[0]
 
     def test_gadm_shape_source_uses_correct_port(self, tmp_path):
-        """--shape-source gadm must route to port 8101."""
+        """--shape-source gadm must route to the gadm URL, not unocha's."""
         called_urls = []
 
         def capture_shapes(url, iso, level):
             called_urls.append(url)
             return SAMPLE_FC
+
+        def fake_default(source):
+            return f"http://test-{source}.example"
 
         with patch.object(sys, "argv", ["laser-generate", "NGA", "1", "2020", "2020",
                                          "--shape-source", "gadm",
                                          "--output-dir", str(tmp_path)]):
-            with patch.object(gen, "fetch_shapes", side_effect=capture_shapes):
-                with patch.object(gen, "fetch_population", return_value=SAMPLE_POP):
-                    with patch.object(gen, "fetch_demographics", return_value=SAMPLE_DEMO):
-                        gen.main()
+            with patch.object(gen, "_default_shapes_url", side_effect=fake_default):
+                with patch.object(gen, "fetch_shapes", side_effect=capture_shapes):
+                    with patch.object(gen, "fetch_population", return_value=SAMPLE_POP):
+                        with patch.object(gen, "fetch_demographics", return_value=SAMPLE_DEMO):
+                            gen.main()
 
-        assert "8101" in called_urls[0]
+        assert "test-gadm" in called_urls[0]
 
 
 # ── Data-building helpers ──────────────────────────────────────────────────────

@@ -42,7 +42,9 @@ def _download(iso: str, level: int) -> Path:
     url = f"{_GB_BASE}/{iso}/ADM{level}/geoBoundaries-{iso}-ADM{level}-all.zip"
     logger.info("Downloading %s ...", url)
 
-    tmp = Path(tempfile.mktemp(dir=dest.parent, suffix=".tmp"))
+    tmp_fd, tmp_name = tempfile.mkstemp(dir=dest.parent, suffix=".tmp")
+    os.close(tmp_fd)
+    tmp = Path(tmp_name)
     try:
         with httpx.stream("GET", url, follow_redirects=True, timeout=600) as r:
             if r.status_code == 404:

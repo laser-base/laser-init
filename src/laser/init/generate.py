@@ -83,15 +83,44 @@ def fetch_shapes(shapes_url: str, iso: str, level: int) -> dict:
     return fc
 
 
+def _truncate_coords(coords, dp: int):
+    """Recursively round GeoJSON coordinates to `dp` decimal places.
+
+    3 dp ≈ 100 m at the equator; WorldPop rasters are ~1 km resolution, so
+    this loses nothing meaningful but cuts payload size 5–10× for detailed
+    borders (e.g. BRA/1 dropped from ~38 MB to a few MB). Matches the
+    behaviour of services/worldpop/client.html.
+    """
+    if not coords:
+        return coords
+    if isinstance(coords[0], (int, float)):
+        return [round(v, dp) for v in coords]
+    return [_truncate_coords(c, dp) for c in coords]
+
+
 def fetch_population(wp_url: str, iso: str, year: int, fc: dict) -> dict:
     url = f"{wp_url}/aggregate/{iso}?year={year}"
     print(f"  worldpop← {url}  (first run downloads raster — may take minutes)")
+    # Truncate coordinates before POSTing (see _truncate_coords).
+    slim_fc = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                **f,
+                "geometry": {
+                    **f["geometry"],
+                    "coordinates": _truncate_coords(f["geometry"]["coordinates"], 3),
+                },
+            }
+            for f in fc["features"]
+        ],
+    }
     # The Azure LB has a 4-min idle timeout; a slow raster download causes a
     # connection reset mid-request. Retry: the download continues server-side
     # and subsequent calls hit the cache quickly.
     for attempt in range(1, 11):
         try:
-            pop = _post(url, fc)
+            pop = _post(url, slim_fc)
             break
         except (httpx.RemoteProtocolError, httpx.ReadError, httpx.ConnectError) as exc:
             if attempt == 10:
@@ -192,7 +221,7 @@ def write_config(output_dir: Path, iso: str, level: int) -> Path:
         },
     }
     with dest.open("w") as f:
-        yaml.dump(cfg, f, default_flow_style=False, sort_keys=False)
+        yaml.safe_dump(cfg, f, default_flow_style=False, sort_keys=False)
     print(f"  → {dest.name}")
     return dest
 

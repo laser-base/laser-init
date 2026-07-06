@@ -24,11 +24,10 @@ import geopandas as gpd
 import httpx
 import rasterio
 import rasterio.features
-import rasterio.mask
 import rasterio.windows
 from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 from shapely.geometry import mapping
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -59,7 +58,7 @@ def _worldpop_url(iso: str, year: int) -> str:
     )
 
 
-def _download_raster(iso: str, year: int) -> Path:
+def _download_raster(iso: str, year: int, allow_oversize: bool = False) -> Path:
     dest = _raster_path(iso, year)
     if dest.exists():
         logger.info("Cache hit: %s", dest)
@@ -90,7 +89,7 @@ def _download_raster(iso: str, year: int) -> Path:
             cl = head.headers.get("content-length")
             if cl:
                 mb = int(cl) // (1024 * 1024)
-                if mb > _MAX_RASTER_MB:
+                if mb > _MAX_RASTER_MB and not allow_oversize:
                     raise HTTPException(
                         422,
                         f"{iso} raster is {mb} MB — too large for on-demand download "
@@ -105,7 +104,9 @@ def _download_raster(iso: str, year: int) -> Path:
             logger.warning("Pre-flight HEAD failed (%s) — proceeding with download", exc)
 
         logger.info("Downloading WorldPop raster for %s year=%d ...", iso, year)
-        tmp = Path(tempfile.mktemp(dir=CACHE_DIR, suffix=".tmp"))
+        tmp_fd, tmp_name = tempfile.mkstemp(dir=CACHE_DIR, suffix=".tmp")
+        os.close(tmp_fd)
+        tmp = Path(tmp_name)
         try:
             with httpx.stream("GET", url, follow_redirects=True, timeout=600) as r:
                 if r.status_code == 404:
@@ -152,7 +153,12 @@ def prewarm(
     iso: str,
     year: int = Query(_YEAR_DEFAULT, ge=2000, le=2020),
 ):
-    _download_raster(iso.upper(), year)
+    # Prewarm bypasses the _MAX_RASTER_MB guard that /aggregate enforces.
+    # Rationale: the guard exists to prevent Azure LB idle-timeout on /aggregate
+    # requests. Prewarm runs from the K8s job (prewarm_countries.py) which
+    # tolerates minutes-long downloads. Users blocked by /aggregate's 422 are
+    # told to POST /prewarm first, so that path must succeed for large rasters.
+    _download_raster(iso.upper(), year, allow_oversize=True)
     return {"status": "ok", "iso": iso.upper(), "year": year}
 
 

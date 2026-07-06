@@ -58,7 +58,9 @@ def _download_zip() -> None:
         return
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     logger.info("Downloading UNOCHA global GDB (~1-2 GB) — this takes a few minutes ...")
-    tmp = Path(tempfile.mktemp(dir=CACHE_DIR, suffix=".tmp"))
+    tmp_fd, tmp_name = tempfile.mkstemp(dir=CACHE_DIR, suffix=".tmp")
+    os.close(tmp_fd)
+    tmp = Path(tmp_name)
     try:
         with httpx.stream("GET", _HDX_URL, follow_redirects=True, timeout=1800) as r:
             r.raise_for_status()
