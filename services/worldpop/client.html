@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>WorldPop Population Choropleth</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
+
+    #controls {
+      padding: 8px 12px;
+      background: #f0f4f8;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    #controls label {
+      display: flex;
+      flex-direction: column;
+      font-size: 11px;
+      font-weight: 600;
+      color: #444;
+      gap: 3px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    #controls input[type=text] { padding: 4px 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; width: 200px; }
+    #controls input.short  { width: 70px; }
+    #controls select       { padding: 4px 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; }
+    #load-btn {
+      padding: 5px 18px;
+      background: #1d4ed8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    #load-btn:hover    { background: #1e40af; }
+    #load-btn:disabled { background: #93c5fd; cursor: default; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Small spinner inside the Load button */
+    #spinner {
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+      flex-shrink: 0;
+    }
+    #load-btn.loading #spinner { display: inline-block; }
+
+    /* Centered overlay spinner on the map */
+    #map-spinner {
+      display: none;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+      background: rgba(255,255,255,.85);
+      border-radius: 12px;
+      padding: 18px 24px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+      pointer-events: none;
+    }
+    #map-spinner .ring {
+      width: 40px; height: 40px;
+      border: 4px solid #dbeafe;
+      border-top-color: #1d4ed8;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 10px;
+    }
+    #map-spinner .label { font-size: 12px; color: #555; }
+    #map-spinner.visible { display: block; }
+
+    #status { font-size: 12px; color: #555; align-self: center; max-width: 480px; white-space: pre-wrap; }
+
+    #map { flex: 1; }
+
+    /* Leaflet legend */
+    .wp-legend {
+      background: white;
+      padding: 8px 10px;
+      border-radius: 4px;
+      box-shadow: 0 1px 5px rgba(0,0,0,.25);
+      font-size: 11px;
+      min-width: 130px;
+    }
+    .wp-legend .title { font-weight: bold; margin-bottom: 5px; font-size: 12px; }
+    .wp-legend .bar {
+      height: 12px;
+      border-radius: 2px;
+      background: linear-gradient(to right,
+        rgb(255,255,204), rgb(254,217,118), rgb(254,178,76),
+        rgb(252,78,42),  rgb(177,0,38));
+      margin-bottom: 3px;
+    }
+    .wp-legend .labels { display: flex; justify-content: space-between; color: #555; }
+
+    /* map wrapper so the overlay can use position:absolute */
+    #map-wrap { flex: 1; position: relative; }
+    #map { width: 100%; height: 100%; }
+
+    /* generate.py command strip — shown after successful choropleth */
+    #cmd-box {
+      display: none;
+      padding: 7px 12px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    #cmd-box .cmd-label {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    #cmd-box code {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 5px 10px;
+      border-radius: 4px;
+      flex: 1;
+    }
+    #cmd-copy {
+      background: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 4px 8px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    #cmd-copy:hover { background: #e2e8f0; color: #1e293b; }
+    #cmd-copy.copied { color: #16a34a; border-color: #16a34a; }
+  </style>
+</head>
+<body>
+
+<div id="controls">
+  <label>Shapes source
+    <select id="source">
+      <option value="gadm"           data-url="http://48.200.52.126">GADM</option>
+      <option value="geoboundaries"  data-url="http://4.149.210.205">geoBoundaries</option>
+      <option value="unocha"         data-url="http://40.91.121.206">UNOCHA</option>
+    </select>
+  </label>
+  <label>Shapes URL
+    <input type="text" id="shapes-url" value="http://48.200.52.126"/>
+  </label>
+  <label>WorldPop URL
+    <input type="text" id="wp-url" value="http://4.155.140.158"/>
+  </label>
+  <label>Country
+    <input type="text" id="iso" list="country-list" value="Nigeria (NGA)"
+           style="width:180px" placeholder="e.g. Nigeria or NGA" autocomplete="off"/>
+    <datalist id="country-list">
+      <option value="Afghanistan (AFG)">
+      <option value="Albania (ALB)">
+      <option value="Algeria (DZA)">
+      <option value="Angola (AGO)">
+      <option value="Argentina (ARG)">
+      <option value="Armenia (ARM)">
+      <option value="Australia (AUS)">
+      <option value="Austria (AUT)">
+      <option value="Azerbaijan (AZE)">
+      <option value="Bangladesh (BGD)">
+      <option value="Belarus (BLR)">
+      <option value="Belgium (BEL)">
+      <option value="Benin (BEN)">
+      <option value="Bolivia (BOL)">
+      <option value="Bosnia and Herzegovina (BIH)">
+      <option value="Botswana (BWA)">
+      <option value="Brazil (BRA)">
+      <option value="Bulgaria (BGR)">
+      <option value="Burkina Faso (BFA)">
+      <option value="Burundi (BDI)">
+      <option value="Cambodia (KHM)">
+      <option value="Cameroon (CMR)">
+      <option value="Canada (CAN)">
+      <option value="Central African Republic (CAF)">
+      <option value="Chad (TCD)">
+      <option value="Chile (CHL)">
+      <option value="China (CHN)">
+      <option value="Colombia (COL)">
+      <option value="Comoros (COM)">
+      <option value="Congo (COG)">
+      <option value="Costa Rica (CRI)">
+      <option value="Côte d'Ivoire (CIV)">
+      <option value="Croatia (HRV)">
+      <option value="Cuba (CUB)">
+      <option value="Czech Republic (CZE)">
+      <option value="Denmark (DNK)">
+      <option value="Djibouti (DJI)">
+      <option value="Dominican Republic (DOM)">
+      <option value="DR Congo (COD)">
+      <option value="Ecuador (ECU)">
+      <option value="Egypt (EGY)">
+      <option value="El Salvador (SLV)">
+      <option value="Eritrea (ERI)">
+      <option value="Estonia (EST)">
+      <option value="Eswatini (SWZ)">
+      <option value="Ethiopia (ETH)">
+      <option value="Finland (FIN)">
+      <option value="France (FRA)">
+      <option value="Gabon (GAB)">
+      <option value="Gambia (GMB)">
+      <option value="Georgia (GEO)">
+      <option value="Germany (DEU)">
+      <option value="Ghana (GHA)">
+      <option value="Greece (GRC)">
+      <option value="Guatemala (GTM)">
+      <option value="Guinea (GIN)">
+      <option value="Guinea-Bissau (GNB)">
+      <option value="Haiti (HTI)">
+      <option value="Honduras (HND)">
+      <option value="Hungary (HUN)">
+      <option value="India (IND)">
+      <option value="Indonesia (IDN)">
+      <option value="Iran (IRN)">
+      <option value="Iraq (IRQ)">
+      <option value="Ireland (IRL)">
+      <option value="Israel (ISR)">
+      <option value="Italy (ITA)">
+      <option value="Jamaica (JAM)">
+      <option value="Japan (JPN)">
+      <option value="Jordan (JOR)">
+      <option value="Kazakhstan (KAZ)">
+      <option value="Kenya (KEN)">
+      <option value="Kosovo (XKX)">
+      <option value="Kuwait (KWT)">
+      <option value="Kyrgyzstan (KGZ)">
+      <option value="Laos (LAO)">
+      <option value="Latvia (LVA)">
+      <option value="Lebanon (LBN)">
+      <option value="Lesotho (LSO)">
+      <option value="Liberia (LBR)">
+      <option value="Libya (LBY)">
+      <option value="Lithuania (LTU)">
+      <option value="Luxembourg (LUX)">
+      <option value="Madagascar (MDG)">
+      <option value="Malawi (MWI)">
+      <option value="Malaysia (MYS)">
+      <option value="Mali (MLI)">
+      <option value="Mauritania (MRT)">
+      <option value="Mauritius (MUS)">
+      <option value="Mexico (MEX)">
+      <option value="Moldova (MDA)">
+      <option value="Mongolia (MNG)">
+      <option value="Morocco (MAR)">
+      <option value="Mozambique (MOZ)">
+      <option value="Myanmar (MMR)">
+      <option value="Namibia (NAM)">
+      <option value="Nepal (NPL)">
+      <option value="Netherlands (NLD)">
+      <option value="New Zealand (NZL)">
+      <option value="Nicaragua (NIC)">
+      <option value="Niger (NER)">
+      <option value="Nigeria (NGA)">
+      <option value="North Korea (PRK)">
+      <option value="North Macedonia (MKD)">
+      <option value="Norway (NOR)">
+      <option value="Oman (OMN)">
+      <option value="Pakistan (PAK)">
+      <option value="Palestine (PSE)">
+      <option value="Panama (PAN)">
+      <option value="Papua New Guinea (PNG)">
+      <option value="Paraguay (PRY)">
+      <option value="Peru (PER)">
+      <option value="Philippines (PHL)">
+      <option value="Poland (POL)">
+      <option value="Portugal (PRT)">
+      <option value="Romania (ROU)">
+      <option value="Russia (RUS)">
+      <option value="Rwanda (RWA)">
+      <option value="Saudi Arabia (SAU)">
+      <option value="Senegal (SEN)">
+      <option value="Serbia (SRB)">
+      <option value="Sierra Leone (SLE)">
+      <option value="Somalia (SOM)">
+      <option value="South Africa (ZAF)">
+      <option value="South Korea (KOR)">
+      <option value="South Sudan (SSD)">
+      <option value="Spain (ESP)">
+      <option value="Sri Lanka (LKA)">
+      <option value="Sudan (SDN)">
+      <option value="Sweden (SWE)">
+      <option value="Switzerland (CHE)">
+      <option value="Syria (SYR)">
+      <option value="Taiwan (TWN)">
+      <option value="Tajikistan (TJK)">
+      <option value="Tanzania (TZA)">
+      <option value="Thailand (THA)">
+      <option value="Timor-Leste (TLS)">
+      <option value="Togo (TGO)">
+      <option value="Tunisia (TUN)">
+      <option value="Turkey (TUR)">
+      <option value="Turkmenistan (TKM)">
+      <option value="Uganda (UGA)">
+      <option value="Ukraine (UKR)">
+      <option value="United Arab Emirates (ARE)">
+      <option value="United Kingdom (GBR)">
+      <option value="United States (USA)">
+      <option value="Uruguay (URY)">
+      <option value="Uzbekistan (UZB)">
+      <option value="Venezuela (VEN)">
+      <option value="Vietnam (VNM)">
+      <option value="Yemen (YEM)">
+      <option value="Zambia (ZMB)">
+      <option value="Zimbabwe (ZWE)">
+    </datalist>
+  </label>
+  <label>Admin level
+    <select id="level">
+      <option value="0">0 — Country</option>
+      <option value="1" selected>1 — Province</option>
+      <option value="2">2 — District</option>
+      <option value="3">3 — Sub-district</option>
+    </select>
+  </label>
+  <label>Year
+    <select id="year">
+      <option>2015</option><option>2016</option><option>2017</option>
+      <option>2018</option><option>2019</option>
+      <option value="2020" selected>2020</option>
+    </select>
+  </label>
+  <label>Mode
+    <select id="mode">
+      <option value="choropleth">Population choropleth</option>
+      <option value="boundaries">Boundaries only</option>
+    </select>
+  </label>
+  <button id="load-btn"><span id="spinner"></span>Load</button>
+  <span id="status"></span>
+</div>
+
+<div id="map-wrap">
+  <div id="map"></div>
+  <div id="map-spinner">
+    <div class="ring"></div>
+    <div class="label" id="map-spinner-label">Loading…</div>
+  </div>
+</div>
+
+<div id="cmd-box">
+  <span class="cmd-label">Run locally to generate model files:</span>
+  <code id="cmd-text"></code>
+  <button id="cmd-copy" title="Copy to clipboard">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+    <span id="cmd-copy-label">Copy</span>
+  </button>
+</div>
+
+<script>
+const map = L.map('map').setView([10, 20], 3);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 18,
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | <a href="https://www.worldpop.org">WorldPop</a>',
+}).addTo(map);
+
+let geojsonLayer = null;
+let legendControl = null;
+
+// Show/hide year control depending on mode
+document.getElementById('mode').addEventListener('change', function () {
+  document.getElementById('year').closest('label').style.display =
+    this.value === 'choropleth' ? '' : 'none';
+});
+
+// Auto-update shapes URL when source changes (each AKS service has its own IP)
+document.getElementById('source').addEventListener('change', function () {
+  const url = this.options[this.selectedIndex].dataset.url;
+  document.getElementById('shapes-url').value = url;
+});
+
+// Keep ISO uppercase while typing
+document.getElementById('iso').addEventListener('input', function () {
+  this.value = this.value.toUpperCase();
+});
+
+function fmtPop(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(0) + 'k';
+  return Math.round(n).toLocaleString();
+}
+
+// YlOrRd colour scale (quantile-classified)
+const COLOR_STOPS = [
+  [255, 255, 204],
+  [254, 217, 118],
+  [254, 178,  76],
+  [253, 141,  60],
+  [252,  78,  42],
+  [227,  26,  28],
+  [177,   0,  38],
+];
+
+function interpolateColor(t) {
+  const idx = Math.min(t, 0.9999) * (COLOR_STOPS.length - 1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  const f = idx - lo;
+  const r = Math.round(COLOR_STOPS[lo][0] + f * (COLOR_STOPS[hi][0] - COLOR_STOPS[lo][0]));
+  const g = Math.round(COLOR_STOPS[lo][1] + f * (COLOR_STOPS[hi][1] - COLOR_STOPS[lo][1]));
+  const b = Math.round(COLOR_STOPS[lo][2] + f * (COLOR_STOPS[hi][2] - COLOR_STOPS[lo][2]));
+  return `rgb(${r},${g},${b})`;
+}
+
+// Build a rank lookup from a popByNode dict.
+// Returns a function (pop) → color that maps quantile rank → colour stop,
+// guaranteeing the full yellow→red range is used regardless of the distribution.
+function buildQuantileColorFn(popByNode) {
+  const sorted = Object.values(popByNode).map(Number).sort((a, b) => a - b);
+  const n = sorted.length;
+  if (n <= 1) return () => interpolateColor(0.5);
+  // For ties, all tied values get the same rank (first occurrence).
+  const rankMap = new Map();
+  sorted.forEach((p, i) => { if (!rankMap.has(p)) rankMap.set(p, i); });
+  return (pop) => {
+    const rank = rankMap.get(pop) ?? 0;
+    return interpolateColor(rank / (n - 1));
+  };
+}
+
+function addLegend(minPop, maxPop) {
+  if (legendControl) map.removeControl(legendControl);
+  legendControl = L.control({ position: 'bottomright' });
+  legendControl.onAdd = () => {
+    const div = L.DomUtil.create('div', 'wp-legend');
+    div.innerHTML = `
+      <div class="title">Population (${document.getElementById('year').value})</div>
+      <div class="bar"></div>
+      <div class="labels"><span>${fmtPop(minPop)}</span><span>${fmtPop(maxPop)}</span></div>
+      <div style="font-size:10px;color:#888;margin-top:3px">quantile classification</div>
+    `;
+    return div;
+  };
+  legendControl.addTo(map);
+}
+
+// Build the generate.py command from current UI state.
+function buildGenerateCmd(iso, level, source) {
+  const parts = ['laser-generate', iso, level, '2020', '2020'];
+  if (source !== 'unocha') parts.push(`--shape-source ${source}`);
+  parts.push('--emit-scripts');
+  return parts.join(' ');
+}
+
+function showCmdBox(iso, level, source) {
+  const cmd = buildGenerateCmd(iso, level, source);
+  document.getElementById('cmd-text').textContent = cmd;
+  document.getElementById('cmd-box').style.display = 'flex';
+}
+
+document.getElementById('cmd-copy').addEventListener('click', function () {
+  const text = document.getElementById('cmd-text').textContent;
+  const label = document.getElementById('cmd-copy-label');
+  navigator.clipboard.writeText(text).then(() => {
+    this.classList.add('copied');
+    label.textContent = 'Copied!';
+    setTimeout(() => {
+      this.classList.remove('copied');
+      label.textContent = 'Copy';
+    }, 1500);
+  });
+});
+
+document.getElementById('load-btn').addEventListener('click', async () => {
+  const shapesUrl = document.getElementById('shapes-url').value.trim().replace(/\/$/, '');
+  const wpUrl     = document.getElementById('wp-url').value.trim().replace(/\/$/, '');
+  // Accept either "NGA" or "Nigeria (NGA)" from the datalist.
+  const _isoRaw   = document.getElementById('iso').value.trim();
+  const _isoMatch = _isoRaw.match(/\(([A-Z]{3})\)\s*$/i);
+  const iso       = (_isoMatch ? _isoMatch[1] : _isoRaw.slice(0, 3)).toUpperCase();
+  const level     = document.getElementById('level').value;
+  const year      = document.getElementById('year').value;
+  const mode      = document.getElementById('mode').value;
+  const source    = document.getElementById('source').value;
+  const btn        = document.getElementById('load-btn');
+  const status     = document.getElementById('status');
+  const mapSpinner = document.getElementById('map-spinner');
+  const spinLabel  = document.getElementById('map-spinner-label');
+
+  // Reset command box for each new load.
+  document.getElementById('cmd-box').style.display = 'none';
+
+  function showSpinner(label) {
+    spinLabel.textContent = label;
+    mapSpinner.classList.add('visible');
+  }
+  function hideSpinner() { mapSpinner.classList.remove('visible'); }
+
+  btn.disabled = true;
+  btn.classList.add('loading');
+  showSpinner('Fetching shapes…');
+  setStatus('Fetching shapes…');
+
+  // Wrapper: fetch with a descriptive error that includes the URL, HTTP status,
+  // and up to 300 chars of the response body.
+  async function apiFetch(label, url, options = {}) {
+    let resp;
+    try {
+      resp = await fetch(url, options);
+    } catch (netErr) {
+      throw new Error(`${label} — network error (${netErr.message})\n  URL: ${url}`);
+    }
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => '');
+      const snippet = body.slice(0, 300).trim();
+      throw new Error(
+        `${label} — HTTP ${resp.status} ${resp.statusText}` +
+        (snippet ? `\n  ${snippet}` : '') +
+        `\n  URL: ${url}`
+      );
+    }
+    return resp;
+  }
+
+  function setStatus(msg, isError = false) {
+    status.style.color = isError ? '#b91c1c' : '#555';
+    status.textContent = msg;
+  }
+
+  try {
+    // ── Step 1: fetch shapes ──────────────────────────────────────────────────
+    const shapesEndpoint = `${shapesUrl}/boundaries/${iso}/${level}`;
+    const shapesResp = await apiFetch('Shapes', shapesEndpoint);
+    const fc = await shapesResp.json();
+    setStatus(`✓ ${fc.features.length} shapes loaded.  ${mode === 'boundaries' ? '' : 'Requesting population…'}`);
+    if (mode !== 'boundaries') showSpinner(`Aggregating population\n${fc.features.length} regions…`);
+
+    if (mode === 'boundaries') {
+      // ── Boundaries-only mode ───────────────────────────────────────────────
+      if (geojsonLayer) map.removeLayer(geojsonLayer);
+      if (legendControl) { map.removeControl(legendControl); legendControl = null; }
+      geojsonLayer = L.geoJSON(fc, {
+        style: { fillColor: '#4a90d9', fillOpacity: 0.35, color: '#2563eb', weight: 1 },
+        onEachFeature: (feature, layer) => {
+          const name = feature.properties.name || feature.properties.NAME || '';
+          layer.bindTooltip(`<strong>${name}</strong>`, { sticky: true });
+          layer.on('mouseover', function () { this.setStyle({ weight: 2, color: '#111' }); });
+          layer.on('mouseout',  function () { geojsonLayer.resetStyle(this); });
+        },
+      }).addTo(map);
+      map.fitBounds(geojsonLayer.getBounds());
+      setStatus(`${fc.features.length} regions loaded`);
+      hideSpinner();
+      return;
+    }
+
+    // ── Step 2: guard against slow aggregation ────────────────────────────────
+    // Countries whose uncompressed raster exceeds 2 GB use windowed disk reads
+    // instead of in-memory mode. For those countries, aggregating hundreds of
+    // polygons takes hours. Warn and bail out early.
+    const _LARGE_RASTER_ISOS = new Set([
+      'BRA','RUS','CAN','USA','CHN','AUS','IND','ARG','KAZ','DZA',
+      'COD','SAU','MEX','IDN','SDN','LBY','IRN','MNG','PER','TCD',
+      'AGO','MYS','ETH','MLI','NER','COL','BOL','MRT','EGY','TZA',
+    ]);
+    const _MAX_WINDOWED_POLYGONS = 150;
+    if (_LARGE_RASTER_ISOS.has(iso.toUpperCase()) && fc.features.length > _MAX_WINDOWED_POLYGONS) {
+      setStatus(
+        `⚠ ${fc.features.length} polygons for ${iso.toUpperCase()} — WorldPop aggregation at this admin level would take many hours in the browser. Use the command below instead.`,
+        true
+      );
+      // Still render the boundary map so the user can see the shapes.
+      if (geojsonLayer) map.removeLayer(geojsonLayer);
+      if (legendControl) { map.removeControl(legendControl); legendControl = null; }
+      geojsonLayer = L.geoJSON(fc, {
+        style: { fillColor: '#4a90d9', fillOpacity: 0.35, color: '#2563eb', weight: 1 },
+        onEachFeature: (feature, layer) => {
+          const name = feature.properties.name || feature.properties.NAME || '';
+          layer.bindTooltip(`<strong>${name}</strong>`, { sticky: true });
+          layer.on('mouseover', function () { this.setStyle({ weight: 2, color: '#111' }); });
+          layer.on('mouseout',  function () { geojsonLayer.resetStyle(this); });
+        },
+      }).addTo(map);
+      map.fitBounds(geojsonLayer.getBounds());
+      showCmdBox(iso, level, source);
+      hideSpinner();
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      return;
+    }
+
+    // ── Step 3: aggregate population via worldpop ─────────────────────────────
+    // Truncate coordinates to 3 decimal places (~100 m) before sending —
+    // WorldPop rasters are ~1 km resolution so this loses nothing meaningful
+    // but cuts payload size 5–10× for countries with detailed borders (BRA, IDN…).
+    function truncateCoords(coords, dp) {
+      if (typeof coords[0] === 'number') return coords.map(v => +v.toFixed(dp));
+      return coords.map(c => truncateCoords(c, dp));
+    }
+    const fcSlim = {
+      type: 'FeatureCollection',
+      features: fc.features.map(f => ({
+        ...f,
+        geometry: {
+          ...f.geometry,
+          coordinates: truncateCoords(f.geometry.coordinates, 3),
+        },
+      })),
+    };
+
+    setStatus(`✓ ${fc.features.length} shapes.  Requesting WorldPop population (may take a few minutes for large countries)…`);
+    const wpEndpoint = `${wpUrl}/aggregate/${iso}?year=${year}`;
+    const wpResp = await apiFetch('WorldPop', wpEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fcSlim),
+    });
+    const popByNode = await wpResp.json();
+
+    // ── Step 4: attach population, compute range + quantile colour fn ─────────
+    let minPop = Infinity, maxPop = -Infinity, totalPop = 0;
+    fc.features.forEach(f => {
+      const pop = popByNode[String(f.properties.nodeid)] ?? 0;
+      f.properties._population = pop;
+      if (pop > maxPop) maxPop = pop;
+      if (pop < minPop) minPop = pop;
+      totalPop += pop;
+    });
+    const colorFor = buildQuantileColorFn(popByNode);
+
+    // ── Step 5: render choropleth ─────────────────────────────────────────────
+    if (geojsonLayer) map.removeLayer(geojsonLayer);
+    geojsonLayer = L.geoJSON(fc, {
+      style: feature => ({
+        fillColor:   colorFor(feature.properties._population),
+        fillOpacity: 0.78,
+        color:       '#666',
+        weight:      0.7,
+      }),
+      onEachFeature: (feature, layer) => {
+        const name = feature.properties.name || feature.properties.NAME || '';
+        const pop  = feature.properties._population;
+        layer.bindTooltip(
+          `<strong>${name}</strong><br>Population: ${Math.round(pop).toLocaleString()}`,
+          { sticky: true }
+        );
+        layer.on('mouseover', function () { this.setStyle({ weight: 2, color: '#222' }); });
+        layer.on('mouseout',  function () { geojsonLayer.resetStyle(this); });
+      },
+    }).addTo(map);
+
+    map.fitBounds(geojsonLayer.getBounds());
+    addLegend(minPop, maxPop);
+    setStatus(`${fc.features.length} regions — total ${fmtPop(totalPop)} people (WorldPop ${year})`);
+    showCmdBox(iso, level, source);
+
+  } catch (err) {
+    // Show the full multi-line error in the status bar, and full detail in console.
+    setStatus(err.message, true);
+    console.error(err);
+  } finally {
+    hideSpinner();
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+});
+</script>
+</body>
+</html>

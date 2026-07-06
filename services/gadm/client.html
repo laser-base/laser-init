@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>gadm-service explorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; display: flex; flex-direction: column; height: 100vh; }
+
+    #toolbar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; background: #1e293b; color: #f1f5f9; flex-shrink: 0;
+    }
+    #toolbar h1 { font-size: 1rem; font-weight: 600; letter-spacing: .03em; margin-right: 6px; }
+    #toolbar label { font-size: .85rem; color: #94a3b8; }
+    #toolbar input, #toolbar select {
+      padding: 5px 8px; border-radius: 5px; border: 1px solid #475569;
+      background: #0f172a; color: #f1f5f9; font-size: .9rem; width: 90px;
+    }
+    #toolbar button {
+      padding: 6px 16px; border-radius: 5px; border: none;
+      background: #3b82f6; color: white; font-size: .9rem; cursor: pointer; font-weight: 500;
+    }
+    #toolbar button:hover { background: #2563eb; }
+    #toolbar button:disabled { background: #475569; cursor: default; }
+    #status { font-size: .8rem; color: #94a3b8; margin-left: auto; }
+    #status.error { color: #f87171; }
+
+    #map { flex: 1; }
+
+    #info-panel {
+      position: absolute; bottom: 24px; right: 12px; z-index: 1000;
+      background: white; border-radius: 8px; padding: 12px 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.18); min-width: 200px; max-width: 260px;
+      font-size: .85rem; display: none;
+    }
+    #info-panel h3 { font-size: .9rem; margin-bottom: 6px; color: #1e293b; }
+    #info-panel table { width: 100%; border-collapse: collapse; }
+    #info-panel td { padding: 2px 0; }
+    #info-panel td:first-child { color: #64748b; padding-right: 10px; white-space: nowrap; }
+    #info-panel td:last-child { font-weight: 500; word-break: break-all; }
+  </style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h1>gadm-service</h1>
+  <label for="url-input">URL</label>
+  <input id="url-input" value="http://localhost:8101" style="width:180px">
+  <label for="iso-input">ISO</label>
+  <input id="iso-input" value="LUX" placeholder="NGA" style="width:70px" maxlength="3">
+  <label for="level-input">Level</label>
+  <select id="level-input">
+    <option>0</option><option selected>1</option>
+    <option>2</option><option>3</option><option>4</option><option>5</option>
+  </select>
+  <button id="fetch-btn" onclick="fetchBoundaries()">Fetch</button>
+  <span id="status">ready</span>
+</div>
+
+<div id="map"></div>
+
+<div id="info-panel">
+  <h3 id="info-name"></h3>
+  <table id="info-table"></table>
+</div>
+
+<script>
+  const map = L.map('map').setView([20, 0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 18
+  }).addTo(map);
+
+  let geojsonLayer = null;
+
+  function status(msg, isError = false) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.className = isError ? 'error' : '';
+  }
+
+  function fetchBoundaries() {
+    const base  = document.getElementById('url-input').value.replace(/\/$/, '');
+    const iso   = document.getElementById('iso-input').value.trim().toUpperCase();
+    const level = document.getElementById('level-input').value;
+    const btn   = document.getElementById('fetch-btn');
+
+    if (!iso) { status('enter an ISO code', true); return; }
+
+    btn.disabled = true;
+    status(`fetching ${iso} / level ${level} …`);
+
+    fetch(`${base}/boundaries/${iso}/${level}`)
+      .then(r => {
+        if (!r.ok) return r.json().then(j => { throw new Error(j.detail || r.statusText); });
+        return r.json();
+      })
+      .then(geojson => {
+        if (geojsonLayer) map.removeLayer(geojsonLayer);
+
+        geojsonLayer = L.geoJSON(geojson, {
+          style: {
+            color: '#3b82f6', weight: 1.5,
+            fillColor: '#93c5fd', fillOpacity: 0.25
+          },
+          onEachFeature(feature, layer) {
+            layer.on({
+              mouseover(e) {
+                e.target.setStyle({ fillOpacity: 0.55, weight: 2.5 });
+              },
+              mouseout(e) {
+                geojsonLayer.resetStyle(e.target);
+                document.getElementById('info-panel').style.display = 'none';
+              },
+              click(e) {
+                const p = feature.properties;
+                document.getElementById('info-name').textContent = p.name || '(unnamed)';
+                const rows = Object.entries(p)
+                  .map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`)
+                  .join('');
+                document.getElementById('info-table').innerHTML = rows;
+                document.getElementById('info-panel').style.display = 'block';
+              }
+            });
+          }
+        }).addTo(map);
+
+        map.fitBounds(geojsonLayer.getBounds(), { padding: [24, 24] });
+        const n = geojson.features?.length ?? 0;
+        status(`${n} feature${n !== 1 ? 's' : ''} — click a polygon for details`);
+      })
+      .catch(err => status(`Error: ${err.message}`, true))
+      .finally(() => { btn.disabled = false; });
+  }
+
+  // Fetch on Enter in any input
+  document.querySelectorAll('#toolbar input, #toolbar select')
+    .forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') fetchBoundaries(); }));
+
+  // Load default on page open
+  fetchBoundaries();
+</script>
+</body>
+</html>

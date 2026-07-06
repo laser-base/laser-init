@@ -1,0 +1,52 @@
+# worldpop-prewarm-job.yaml — one-shot Job that pre-populates the worldpop PVC.
+#
+# Run AFTER laser-worldpop-svc is Ready. The Job calls POST /prewarm/{iso} for
+# each country in the default humanitarian list (~50 ISOs, 4 workers).
+# Re-applying is safe: completed jobs are not re-run; delete and re-apply to retry.
+#
+# Apply:
+#   kubectl apply -f AKS/worldpop-prewarm-job.yaml --kubeconfig AKS/kube.conf
+#
+# Monitor:
+#   kubectl logs -f job/laser-worldpop-prewarm -n laser-ai --kubeconfig AKS/kube.conf
+#
+# Delete once complete (optional):
+#   kubectl delete job laser-worldpop-prewarm -n laser-ai --kubeconfig AKS/kube.conf
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: laser-worldpop-prewarm
+  namespace: laser-ai
+  labels:
+    app.kubernetes.io/part-of: laser-geodata
+spec:
+  # Do not restart on success; retry up to 2× on failure.
+  backoffLimit: 2
+  template:
+    spec:
+      imagePullSecrets:
+        - name: artifactory-login
+      restartPolicy: OnFailure
+      containers:
+        - name: prewarm
+          image: idm-docker-staging.packages.idmod.org/laser-worldpop-service:v0.5.12a
+          imagePullPolicy: Always
+          # Override the default uvicorn CMD with the prewarm script.
+          command: ["python", "-u", "prewarm_countries.py"]
+          args:
+            - "--url"
+            - "http://laser-worldpop-svc"
+            - "--year"
+            - "2020"
+            - "--workers"
+            - "4"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+          # activeDeadlineSeconds: 7200 on the Job spec handles overall timeout.
+      activeDeadlineSeconds: 7200
