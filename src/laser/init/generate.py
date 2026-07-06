@@ -122,7 +122,7 @@ def fetch_population(wp_url: str, iso: str, year: int, fc: dict) -> dict:
         try:
             pop = _post(url, slim_fc)
             break
-        except (httpx.RemoteProtocolError, httpx.ReadError, httpx.ConnectError) as exc:
+        except (httpx.RemoteProtocolError, httpx.ReadError, httpx.ConnectError):
             if attempt == 10:
                 raise
             wait = 60
@@ -237,8 +237,8 @@ def _emit_scripts(
     model: str,
 ) -> None:
     """Call the laser-init Load phase to emit model scripts and validation plots."""
-    from laser.init.loaders.abm import AbmLoader
     from laser.init.cli import write_plots
+    from laser.init.loaders.abm import AbmLoader
 
     print("\nEmitting model scripts via laser-init Load phase ...")
     AbmLoader().emit_script(
