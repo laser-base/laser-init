@@ -10,7 +10,9 @@ import yaml
 from laser.measles.abm import ABMModel, ABMParams, components
 from laser.measles.components import create_component
 
-spec = importlib.util.spec_from_file_location("module_name", Path(__file__).parent / "measles_plot.py")
+spec = importlib.util.spec_from_file_location(
+    "module_name", Path(__file__).parent / "measles_plot.py"
+)
 plot = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(plot)
 
@@ -60,13 +62,15 @@ def main(config_file: Path, data_dir: Path) -> None:
 
     # Build the scenario Polars DataFrame from the GeoPackage
     centroids = gdf.geometry.centroid
-    scenario = pl.DataFrame({
-        "id": [f"patch_{i}" for i in range(len(gdf))],
-        "lat": centroids.y.to_numpy(),
-        "lon": centroids.x.to_numpy(),
-        "pop": gdf["population"].to_numpy().astype(np.int64),
-        "mcv1": np.zeros(len(gdf)),
-    })
+    scenario = pl.DataFrame(
+        {
+            "id": [f"patch_{i}" for i in range(len(gdf))],
+            "lat": centroids.y.to_numpy(),
+            "lon": centroids.x.to_numpy(),
+            "pop": gdf["population"].to_numpy().astype(np.int64),
+            "mcv1": np.zeros(len(gdf)),
+        }
+    )
 
     sim = config["simulation"]
 

@@ -98,7 +98,9 @@ class AbmLoader:
         if model.upper() == "MEASLES":
             self._emit_measles(shape_filename, cxr_filename, output_dir)
         else:
-            self._emit_generic(model, shape_filename, cxr_filename, pop_filename, exp_filename, output_dir)
+            self._emit_generic(
+                model, shape_filename, cxr_filename, pop_filename, exp_filename, output_dir
+            )
 
         return
 

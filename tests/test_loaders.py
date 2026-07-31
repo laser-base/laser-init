@@ -301,9 +301,7 @@ class TestAbmLoader:
         )
 
         assert (output_dir / "measles.py").exists(), "measles.py should be created"
-        assert (
-            output_dir / "measles_plot.py"
-        ).exists(), "measles_plot.py should be created"
+        assert (output_dir / "measles_plot.py").exists(), "measles_plot.py should be created"
         assert (output_dir / "config.yaml").exists(), "config.yaml should be created"
 
     def test_abm_measles_config_has_correct_keys(self, tmp_path):

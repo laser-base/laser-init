@@ -6,7 +6,9 @@ import polars as pl
 from matplotlib.backends.backend_pdf import PdfPages
 
 
-def show_plots(model, scenario: pl.DataFrame, output_dir: Path | None, name: str = "measles") -> Path:
+def show_plots(
+    model, scenario: pl.DataFrame, output_dir: Path | None, name: str = "measles"
+) -> Path:
     """Generate visualization plots for measles ABM model output.
 
     Creates plots for analyzing measles ABM simulation results including
