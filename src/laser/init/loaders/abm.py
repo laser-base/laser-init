@@ -78,15 +78,17 @@ class AbmLoader:
         Creates a YAML configuration file with data file paths and simulation parameters,
         then copies the appropriate model script (SI, SIR, SEIR, or MEASLES) and plotting
         utilities to the output directory. The MEASLES model uses laser-measles instead of
-        laser-generic and requires only shape and crude rate data files.
+        laser-generic and only consumes shape and crude-rate data; ``pop_filename`` and
+        ``exp_filename`` are accepted for signature compatibility with the other model
+        types but are ignored for MEASLES.
 
         Args:
             mode: Model mode (must be "ABM").
             model: Model type ("SI", "SIR", "SEIR", or "MEASLES").
             shape_filename: Path to the GeoPackage file with administrative boundaries.
             cxr_filename: Path to the CSV file with crude birth/death rates.
-            pop_filename: Path to the CSV file with age distribution.
-            exp_filename: Path to the CSV file with life expectancy data.
+            pop_filename: Path to the CSV file with age distribution. Ignored for MEASLES.
+            exp_filename: Path to the CSV file with life expectancy data. Ignored for MEASLES.
             output_dir: Directory where model script and config will be written.
 
         Raises:

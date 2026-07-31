@@ -8,7 +8,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 def show_plots(
     model, scenario: pl.DataFrame, output_dir: Path | None, name: str = "measles"
-) -> Path:
+) -> Path | None:
     """Generate visualization plots for measles ABM model output.
 
     Creates plots for analyzing measles ABM simulation results including
@@ -36,9 +36,10 @@ def show_plots(
         with PdfPages(pdf_path) as pdf:
             for fig in figs:
                 pdf.savefig(fig)
-                plt.close(fig)
     else:
         pdf_path = None
+    for fig in figs:
+        plt.close(fig)
 
     return pdf_path
 
