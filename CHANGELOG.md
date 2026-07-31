@@ -20,6 +20,13 @@ All notable changes to this project will be documented in this file.
   the "Getting Help" reference now links to the Quick Start and existing workflows.
 
 ### Added
+- Measles ABM template support across the project
+  - Added a measles-specific ABM template and plotting helpers using `laser-measles`
+  - Added `MEASLES` CLI and loader support for emitting `measles.py`, `measles_plot.py`, and a measles-specific `config.yaml`
+  - Added tests covering measles model module imports and ABM loader emission for the `MEASLES` model
+- Declared new runtime dependencies for the measles workflow in `pyproject.toml`
+  - Added `laser-measles>=0.10.0`
+  - Added `polars>=1.0.0`
 - `examples/` directory with an index README and three runnable basic shell examples
   (quick start, boundary-source comparison, custom model parameters), linked from the
   main `README.md`. Examples were corrected against the actual CLI behavior (underscore

@@ -52,9 +52,11 @@ dependencies = [
     "click>=8.3.1",
     "geopandas>=1.1.2",
     "laser-generic>=1.0.1",
+    "laser-measles>=0.10.0",
     "matplotlib>=3.10.8",
     "openai>=2.24.0",
     "pandas>=2.3.3",
+    "polars>=1.0.0",
     "pycountry>=26.2.16",
     "pyogrio>=0.12.1",
     "pyyaml>=6.0.3",
@@ -174,6 +176,8 @@ omit = [
     "**/models/si.py",
     "**/models/sir.py",
     "**/models/seir.py",
+    "**/models/measles.py",
+    "**/models/measles_plot.py",
 ]
 
 [tool.coverage.report]

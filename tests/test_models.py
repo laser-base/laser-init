@@ -1,10 +1,10 @@
 """Tests for laser.init.models modules.
 
-This module tests model template generation for SI, SIR, and SEIR
+This module tests model template generation for SI, SIR, SEIR, and Measles
 epidemiological models.
 """
 
-from laser.init.models import plot, seir, si, sir
+from laser.init.models import measles, measles_plot, plot, seir, si, sir
 
 
 class TestModelModulesExist:
@@ -53,3 +53,25 @@ class TestModelModulesExist:
         Failure indicates plot module has been removed or renamed.
         """
         assert plot is not None
+
+    def test_measles_model_module_exists(self):
+        """Test that measles model module exists.
+
+        Given the models package
+        When checking for measles module
+        Then it should be available
+
+        Failure indicates measles model has been removed or renamed.
+        """
+        assert measles is not None
+
+    def test_measles_plot_module_exists(self):
+        """Test that measles_plot utilities module exists.
+
+        Given the models package
+        When checking for measles_plot module
+        Then it should be available
+
+        Failure indicates measles_plot module has been removed or renamed.
+        """
+        assert measles_plot is not None
