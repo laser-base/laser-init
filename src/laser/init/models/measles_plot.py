@@ -57,7 +57,7 @@ def global_seir_fractions(model, scenario: pl.DataFrame) -> plt.Figure:
 
     S = np.array(global_tracker.S) / total_pop
     E = np.array(global_tracker.E) / total_pop
-    I = np.array(global_tracker.I) / total_pop
+    I = np.array(global_tracker.I) / total_pop  # noqa: E741 — SEIR domain notation
     R = np.array(global_tracker.R) / total_pop
 
     fig, ax = plt.subplots(figsize=(10, 6))

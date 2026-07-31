@@ -176,6 +176,8 @@ omit = [
     "**/models/si.py",
     "**/models/sir.py",
     "**/models/seir.py",
+    "**/models/measles.py",
+    "**/models/measles_plot.py",
 ]
 
 [tool.coverage.report]
