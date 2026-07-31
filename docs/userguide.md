@@ -222,7 +222,7 @@ Time,CBR,CDR
 ...
 ```
 
-**Units**: Per 1,000 people per-year (43.920 = 42.92 births per 1,000 population, each year)
+**Units**: Per 1,000 people per-year (43.920 = 43.92 births per 1,000 population, each year)
 
 **Use case**: Vital dynamics (births and deaths) in the model
 
@@ -662,8 +662,8 @@ plt.savefig("custom_attack_rate.png", dpi=300, bbox_inches="tight")
 
 ### LASER Documentation
 
-- [LASER Core](https://github.com/InstituteforDiseaseModeling/laser-core) - Core modeling framework
-- [LASER Generic](https://github.com/InstituteforDiseaseModeling/laser-generic) - Generic disease models
+- [LASER Core](https://github.com/laser-base/laser-core) - Core modeling framework
+- [LASER Generic](https://github.com/laser-base/laser-generic) - Generic disease models
 
 ### Data Source Documentation
 
@@ -680,6 +680,6 @@ plt.savefig("custom_attack_rate.png", dpi=300, bbox_inches="tight")
 
 ## Getting Help
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/InstituteforDiseaseModeling/laser-init/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/laser-base/laser-init/issues)
 - **Documentation**: Check all docs in the `docs/` directory
-- **Examples**: See the `examples/` directory for common use cases (coming soon)
+- **Examples**: See the [Quick Start](quickstart.md) and the workflows above for common use cases.

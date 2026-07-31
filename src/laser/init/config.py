@@ -132,14 +132,18 @@ if any(path.is_file() for path in candidates):
                 try:
                     configuration = yaml.safe_load(path.read_text())
                 except yaml.YAMLError as e:
-                    warnings.warn(f"Error parsing YAML configuration file {path}: {e}", stacklevel=2)
+                    warnings.warn(
+                        f"Error parsing YAML configuration file {path}: {e}", stacklevel=2
+                    )
                     configuration = {}
                 break
             elif path.suffix.lower() == ".json":
                 try:
                     configuration = json.loads(path.read_text())
                 except json.JSONDecodeError as e:
-                    warnings.warn(f"Error parsing JSON configuration file {path}: {e}", stacklevel=2)
+                    warnings.warn(
+                        f"Error parsing JSON configuration file {path}: {e}", stacklevel=2
+                    )
                     configuration = {}
                 break
 else:

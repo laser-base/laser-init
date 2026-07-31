@@ -395,7 +395,7 @@ def import_pressure(model: Model, output_dir: Path | None) -> plt.Figure:
     all_pressures = []
 
     # For each top node, calculate import pressure
-    for idx, source_node in enumerate(top_nodes):
+    for source_node in top_nodes:
         # Calculate import pressure from this source node over time
         # Import pressure = infectious individuals at source * connectivity to other nodes
         import_pressure_over_time = (

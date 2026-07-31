@@ -1,6 +1,9 @@
 # Python-generated files
 __pycache__/
 *.py[oc]
+
+# Jupyter
+.ipynb_checkpoints/
 build/
 dist/
 wheels/
@@ -8,9 +11,6 @@ wheels/
 
 # Virtual environments
 .venv
-
-# tmp
-tmp/
 
 .coverage
 htmlcov/
@@ -22,7 +22,13 @@ logs/
 site/
 
 coverage.xml
+
+# laser-init / example run output directories (generated data)
 PAK/
 SEN/
 NGA/
 KEN/
+ETH/
+compare/
+west_africa/
+timeseries/

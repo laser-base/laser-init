@@ -12,16 +12,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
 
-from laser.init.extractors import gadm as gadmex
-from laser.init.extractors import geoboundaries as geoboundariesex
-from laser.init.extractors import unocha as unochaex
-from laser.init.extractors import unwpp as unwppex
-from laser.init.extractors import worldpop as worldpopex
-from laser.init.loaders import abm, mpm
-from laser.init.transformers import gadm as gadmtx
-from laser.init.transformers import geoboundaries as geoboundariestx
-from laser.init.transformers import unocha as unochatx
-from laser.init.transformers import unwpp as unwpptx
+from laser.init import registry
 
 from .config import VERSION
 from .config import configuration as config
@@ -31,7 +22,10 @@ help = """
 Download spatial data for modeling diseases across populations and prepare for use with a LASER model.
 E.g., laser-init NGA ADM2 2010 2025
 """
-__MIN_YEAR__ = 1950
+# Lower bound of 2000 reflects the earliest year supported by the data sources
+# (WorldPop population rasters begin at 2000); years before this are rejected by
+# the CLI rather than failing later during extraction.
+__MIN_YEAR__ = 2000
 __MAX_YEAR__ = 2100
 
 
@@ -102,8 +96,8 @@ def cli(
     Args:
         country: Country name or ISO 3166-1 alpha-3 code (e.g., "Nigeria" or "NGA").
         level: Administrative level as string (e.g., "ADM1", "admin2", "3").
-        start_year: Base year for simulation (1950-2100, must be <= end_year).
-        end_year: End year for simulation (1950-2100, must be >= start_year).
+        start_year: Base year for simulation (2000-2100, must be <= end_year).
+        end_year: End year for simulation (2000-2100, must be >= start_year).
         output_dir: Output directory path. If None, defaults to "./ISOCODE/start_year".
         mode: Modeling mode, either "ABM" (agent-based model) or "MPM" (metapopulation model).
         model: Epidemiological model type - "SI", "SIR", "SEIR", or "MEASLES".
@@ -125,8 +119,8 @@ def cli(
         click.exceptions.Exit: If any validation fails:
             - Invalid country code or ISO-3 code cannot be determined
             - Invalid administrative level format
-            - Start year out of range (< 1900 or > current year)
-            - End year out of range (< start_year or > current year)
+            - Start year out of range (< 2000 or > 2100)
+            - End year out of range (< start_year or > 2100)
             - Invalid shape_source, raster_source, or stats_source
         RuntimeError: If data extraction or transformation fails:
             - Shape file cannot be read during plotting
@@ -259,16 +253,9 @@ def download_shape_data(iso_code: str, adm_level: int, start_year: int, shape_so
 
     shape_source = (shape_source or config.get("shape_source", "unocha")).lower()
     try:
-        shape_extractor = {
-            "unocha": unochaex.UnochaExtractor,
-            "geoboundaries": geoboundariesex.GeoBoundariesExtractor,
-            "gadm": gadmex.GadmExtractor,
-        }[shape_source]()
-    except KeyError:
-        error(
-            f"Invalid shape source '{shape_source}'. Valid options are: unocha, geoboundaries, gadm.",
-            click.exceptions.Exit(1),
-        )
+        shape_extractor = registry.get_shape_source(shape_source).extractor()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     inform(f"Using shape source: {shape_source} ({shape_extractor.description()})")
 
@@ -292,14 +279,9 @@ def download_raster_data(iso_code: str, start_year: int, raster_source: str) -> 
 
     raster_source = (raster_source or config.get("raster_source", "worldpop")).lower()
     try:
-        raster_extractor = {
-            "worldpop": worldpopex.WorldPopExtractor,
-        }[raster_source]()
-    except KeyError:
-        error(
-            f"Invalid raster source '{raster_source}'. Valid options are: worldpop.",
-            click.exceptions.Exit(1),
-        )
+        raster_extractor = registry.get_raster_extractor(raster_source)()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     inform(f"Using raster source: {raster_source} ({raster_extractor.description()})")
 
@@ -327,14 +309,9 @@ def download_demographic_stats(
     stats_source = (stats_source or config.get("stats_source", "unwpp")).lower()
 
     try:
-        stats_extractor = {
-            "unwpp": unwppex.UnwppExtractor,
-        }[stats_source]()
-    except KeyError:
-        error(
-            f"Invalid demographic stats source '{stats_source}'. Valid options are: unwpp.",
-            click.exceptions.Exit(1),
-        )
+        stats_extractor = registry.get_stats_source(stats_source).extractor()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     inform(f"Using demographic stats source: UNWPP ({stats_extractor.description()})")
 
@@ -370,11 +347,10 @@ def transform_shape_and_raster_data(
     """
 
     shape_source = (shape_source or config.get("shape_source", "unocha")).lower()
-    shape_transformer = {
-        "unocha": unochatx.UnochaTransformer,
-        "geoboundaries": geoboundariestx.GeoBoundariesTransformer,
-        "gadm": gadmtx.GadmTransformer,
-    }[shape_source]()
+    try:
+        shape_transformer = registry.get_shape_source(shape_source).transformer()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     inform(f"Using shape transformer: {shape_source} ({shape_transformer.description()})")
 
@@ -411,10 +387,10 @@ def transform_stats_data(
         KeyError: If the specified stats_source is not found in the available transformers.
     """
     stats_source = (stats_source or config.get("stats_source", "unwpp")).lower()
-    stats_transformer = {
-        "unwpp": unwpptx.UnwppTransformer,
-        # Add other stats transformers here as needed
-    }[stats_source]()
+    try:
+        stats_transformer = registry.get_stats_source(stats_source).transformer()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     inform(
         f"Using demographic stats transformer: {stats_source} ({stats_transformer.description()})"
@@ -446,23 +422,21 @@ def emit_model_script(
     Returns:
         None
     """
-    # For now, just print the paths to the transformed data files. In the future, this could generate
-    # a Python script that loads the data and prepares it for use with a LASER model.
+    # Report the transformed data files, then dispatch to the selected loader to write
+    # the model script and configuration into the output directory.
     inform(f"Emitting model script for {mode}/{model} with data files:")
     inform(f"Shape file:                       '{shapes_filename}'")
     inform(f"CBR/CDR file:                     '{cxr_filename}'")
     inform(f"Population age distribution file: '{pop_filename}'")
     inform(f"Life expectancy file:             '{exp_filename}'")
 
-    model_loader = {
-        "ABM/SI": abm.AbmLoader,
-        "ABM/SIR": abm.AbmLoader,
-        "ABM/SEIR": abm.AbmLoader,
-        "ABM/MEASLES": abm.AbmLoader,
-        "MPM/SI": mpm.MpmLoader,
-        "MPM/SIR": mpm.MpmLoader,
-        "MPM/SEIR": mpm.MpmLoader,
-    }[f"{mode.upper()}/{model.upper()}"]()
+    # The loader is selected by modeling mode (ABM/MPM); the model type
+    # (SI/SIR/SEIR/MEASLES) is passed through to the loader rather than selecting
+    # a different class.
+    try:
+        model_loader = registry.get_model_loader(mode)()
+    except KeyError as e:
+        error(str(e), click.exceptions.Exit(1))
 
     model_loader.emit_script(
         mode, model, shapes_filename, cxr_filename, pop_filename, exp_filename, output_dir

@@ -8,10 +8,11 @@ import os
 from pathlib import Path
 from unittest.mock import patch
 
-import laser.init.config
 import pytest
 import yaml
 from click.testing import CliRunner
+
+import laser.init.config
 from laser.init import cli
 
 
@@ -74,9 +75,7 @@ class TestCLIArguments:
         result = runner.invoke(cli.cli, [])
         # Should fail without required arguments
         assert result.exit_code != 0
-        assert result.output.startswith(
-            "Usage: cli [OPTIONS] COUNTRY LEVEL START_YEAR END_YEAR"
-        )
+        assert result.output.startswith("Usage: cli [OPTIONS] COUNTRY LEVEL START_YEAR END_YEAR")
 
     def test_cli_requires_all_positional_arguments(self):
         """Test that ALL positional arguments are required (not just one).
@@ -117,9 +116,7 @@ class TestCLIArguments:
         result = runner.invoke(cli.cli, ["--help"])
         assert result.exit_code == 0
         # Check for usage line (may show "cli" or "laser-init" depending on context)
-        assert result.output.startswith(
-            "Usage: cli [OPTIONS] COUNTRY LEVEL START_YEAR END_YEAR"
-        )
+        assert result.output.startswith("Usage: cli [OPTIONS] COUNTRY LEVEL START_YEAR END_YEAR")
 
     def test_cli_shape_source_option(self):
         """Test that CLI accepts --shape-source option.
@@ -182,9 +179,7 @@ class TestCLIValidation:
 
         runner = CliRunner()
         output_dir = cli_env["work_dir"] / "test_invalid_country"
-        result = runner.invoke(
-            cli.cli, ["INVALID123", "2", "2000", "2025", "-o", str(output_dir)]
-        )
+        result = runner.invoke(cli.cli, ["INVALID123", "2", "2000", "2025", "-o", str(output_dir)])
         # Should fail with invalid country
         assert result.exit_code != 0
 
@@ -202,9 +197,7 @@ class TestCLIValidation:
 
         runner = CliRunner()
         output_dir = cli_env["work_dir"] / "test_invalid_level"
-        result = runner.invoke(
-            cli.cli, ["SEN", "-1", "2000", "2025", "-o", str(output_dir)]
-        )
+        result = runner.invoke(cli.cli, ["SEN", "-1", "2000", "2025", "-o", str(output_dir)])
         # Should fail with invalid level
         assert result.exit_code != 0
 
@@ -222,9 +215,7 @@ class TestCLIValidation:
 
         runner = CliRunner()
         output_dir = cli_env["work_dir"] / "test_invalid_years"
-        result = runner.invoke(
-            cli.cli, ["SEN", "2", "2025", "2000", "-o", str(output_dir)]
-        )
+        result = runner.invoke(cli.cli, ["SEN", "2", "2025", "2000", "-o", str(output_dir)])
         # Should fail with invalid year range
         assert result.exit_code != 0
 
@@ -510,9 +501,7 @@ class TestCLIModelGeneration:
         output_dir = cli_env["work_dir"] / "test_default_model"
 
         # Run without --model option (should default to SEIR, using Senegal)
-        result = runner.invoke(
-            cli.cli, ["SEN", "2", "2020", "2025", "-o", str(output_dir)]
-        )
+        result = runner.invoke(cli.cli, ["SEN", "2", "2020", "2025", "-o", str(output_dir)])
 
         # Should succeed
         assert result.exit_code == 0, f"CLI failed: {result.output}"
@@ -689,21 +678,15 @@ class TestCLIIntegration:
             # Run CLI with JSON config
             runner = CliRunner()
             output_dir = work_dir / "test_json_output"
-            result = runner.invoke(
-                cli.cli, ["SEN", "2", "2020", "2025", "-o", str(output_dir)]
-            )
+            result = runner.invoke(cli.cli, ["SEN", "2", "2020", "2025", "-o", str(output_dir)])
 
             # Should succeed with JSON config
-            assert result.exit_code == 0, (
-                f"CLI should work with JSON config: {result.output}"
-            )
+            assert result.exit_code == 0, f"CLI should work with JSON config: {result.output}"
 
             # Verify output was created
             assert output_dir.exists(), "Output directory should be created"
             seir_script = output_dir / "seir.py"
-            assert seir_script.exists(), (
-                "Model script should be created with JSON config"
-            )
+            assert seir_script.exists(), "Model script should be created with JSON config"
 
         finally:
             # Restore original directory and config
@@ -734,17 +717,17 @@ class TestCLIModuleFunctions:
         """Test that validate_arguments raises Exit for invalid year range.
 
         Given a call to validate_arguments with an invalid year range
-        When start_year < 1950 or end_year > 2100 or end_year < start_year
+        When start_year < 2000 or end_year > 2100 or end_year < start_year
         Then click.exceptions.Exit should be raised to indicate invalid input
 
         Failure indicates year validation is not working.
-        Note: Valid year range is 1950-2100 per UN WPP data availability.
+        Note: Valid year range is 2000-2100 (WorldPop population rasters begin at 2000).
         """
         from click import exceptions
 
-        # Call validate_arguments with start_year < 1950
+        # Call validate_arguments with start_year < 2000
         with pytest.raises(exceptions.Exit):
-            cli.validate_arguments("SEN", "2", 1949, 2020, tmp_path / "output")
+            cli.validate_arguments("SEN", "2", 1999, 2020, tmp_path / "output")
 
         # Call validate_arguments with start_year > 2100
         with pytest.raises(exceptions.Exit):

@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Removed
+- Deleted the stale `docstrings.md` tracking document; all of its actionable items
+  were already addressed in the code or had become obsolete.
+- Deleted the stale `doc_plan.md` tracking document; its remaining relevant items were
+  addressed (see below) and the rest were complete, aspirational, or not applicable.
+
+### Fixed
+- Generated model scripts (SI/SIR/SEIR) crashed with `AttributeError: 'str' object has
+  no attribute 'read_text'` when run with an explicit `--config`/`--data-dir` path. The
+  Click options used `click.Path(exists=True)` without `path_type=Path`, so a
+  command-line value arrived as a `str` (the default Path masked the bug). Added
+  `path_type=Path` to the option definitions in `models/si.py`, `sir.py`, and `seir.py`.
+- User guide no longer points to a non-existent `examples/` directory ("coming soon");
+  the "Getting Help" reference now links to the Quick Start and existing workflows.
+
 ### Added
 - Measles ABM template support across the project
   - Added a measles-specific ABM template and plotting helpers using `laser-measles`
@@ -12,6 +27,126 @@ All notable changes to this project will be documented in this file.
 - Declared new runtime dependencies for the measles workflow in `pyproject.toml`
   - Added `laser-measles>=0.10.0`
   - Added `polars>=1.0.0`
+- `examples/` directory with an index README and three runnable basic shell examples
+  (quick start, boundary-source comparison, custom model parameters), linked from the
+  main `README.md`. Examples were corrected against the actual CLI behavior (underscore
+  config keys, `--output-dir` paths).
+- `examples/workflows/` with three end-to-end workflow examples: multi-country batch
+  generation with a population summary (`multi_country_analysis.sh`), multi-year
+  population comparison (`time_series_comparison.py`), and a parameter sweep over R0 and
+  infectious duration driven through `seir.py --config` (`sensitivity_analysis.py`).
+- `examples/data_integration/` with three examples for working with the GeoPackage
+  output: statistics and multi-panel maps (`geopackage_analysis.py`), a publication-
+  quality choropleth (`custom_visualization.py`), and a QGIS-ready enriched layer
+  (`export_to_qgis.py`). Area/density are computed via an equal-area projection (the
+  data is EPSG:4326); no extra dependencies beyond the project's own.
+- `examples/model_customization/` with two verified model-customization examples built
+  on laser-generic components: a transmission-reducing "social distancing" window via
+  the `Transmission` seasonality multiplier (`social_distancing.py`) and an SEIRS model
+  with waning immunity (`seirs_waning_immunity.py`), plus a shared `_common.py` that
+  reproduces the generated `seir.py` setup. (A vaccination example is intentionally
+  omitted — the built-in immunization components require a different model formulation;
+  see the examples README.)
+- `examples/advanced/` with three verified advanced examples — Monte Carlo uncertainty
+  quantification (`uncertainty_quantification.py`), R0 calibration to a target attack
+  rate via bisection (`calibration_example.py`, numpy only), and a parallel scenario
+  sweep with `ProcessPoolExecutor` (`parallel_scenarios.py`) — plus a shared `_common.py`
+  whose `run_scenario` builds/runs a SEIR model with parameter overrides and extracts
+  scalar metrics (peak timing/size, attack rate) from `model.nodes`.
+- `examples/notebooks/` with four Jupyter notebooks: getting started
+  (`01_getting_started.ipynb`), data exploration (`02_data_exploration.ipynb`),
+  SI/SIR/SEIR comparison (`03_model_comparison.ipynb`), and an end-to-end custom
+  analysis (`04_custom_analysis.ipynb`). Jupyter is not a project dependency; the
+  examples README documents how to run them.
+- CI now statically checks the examples: the lint job runs `ruff` over `examples/`,
+  compiles every example script, and validates the notebooks as nbformat-v4 JSON.
+  The examples README gained a learning-progression overview and an "example data"
+  note (data is generated on demand, not bundled); `.ipynb_checkpoints/` is gitignored.
+- API reference pages for the loaders (`docs/api/loaders/abm.md`, `mpm.md`) with a
+  "Loaders" entry in the MkDocs API navigation — the loaders were the only component
+  family without API docs.
+- Documentation build-status badge in `README.md`.
+- "Building the docs" guidance in `docs/contributing.md` (mkdocs serve/build, the
+  `docs/` layout, and how to add an API page).
+
+### Changed
+- Marked `examples-plan.md` as implemented: checked off the completed phases/criteria
+  and recorded the deviations (two omitted Phase 4 examples, dropped `contextily`/`scipy`,
+  data generated on demand, CI static checks).
+- Cleaned up minor docstring/comment debt: removed the unused captured-output variable
+  in `clip_quietly`, annotated `error()` as `-> NoReturn`, removed the now-unreachable
+  `local_path = None` after `error()` in the GADM extractor, and corrected the stale
+  "just print the paths" comment in `emit_model_script`.
+
+### Fixed
+- GADM transformer: clip a temporary standalone shapefile instead of an invalid
+  path constructed inside the `.zip` archive (`shape_file / "gadm41_…shp"`, which
+  never existed on disk), so `raster_clip` receives a real file. The zip layer is
+  still read directly via geopandas; only the clip input path was broken. Added
+  real-fixture tests (zipped shapefile, no mocked reads) covering the clip path and
+  the admin-level-0/4 naming branches.
+
+### Changed
+- Raised the coverage gate from 85% to 90% (`--cov-fail-under=90`). Added tests
+  lifting the previously thin modules: GADM extractor (shapefile→GeoPackage fallback
+  success and both-fail paths), UNWPP extractor (each of the four download error
+  branches), and the UNOCHA transformer (output-dir guard, empty-ISO guard, global
+  zip extraction and missing-`.gdb` guards, admin-level-4 naming, and the
+  `read_gdb_quietly`/decompression-reuse helpers). Per-file coverage: UNWPP extractor,
+  GADM transformer, and UNOCHA transformer at 100%; GADM extractor at 97% (the one
+  remaining line is unreachable dead code after `error()`). Overall ~97%.
+- Switched the build backend from Hatchling to the uv build backend (`uv_build`):
+  updated `[build-system]` and replaced `[tool.hatch.build.targets.wheel]` with
+  `[tool.uv.build-backend]` configured for the `laser.init` namespace package under
+  `src/` (and excluding `.DS_Store` from distributions). Regenerated `uv.lock`.
+- Consolidated all pytest and coverage configuration into `pyproject.toml`
+  (`[tool.pytest.ini_options]`) and removed `pytest.ini`, eliminating the
+  duplicate/conflicting test config. The authoritative settings (full `addopts`
+  including `--strict-markers` and `--cov-fail-under=85`, the complete marker set,
+  and log-cli settings) now live in one place.
+- UNOCHA extractor now downloads per-country, per-administrative-level GeoPackage
+  files (`.gpkg.zstd`) from the laser-base UNOCHA repository
+  (https://github.com/laser-base/unocha), mirroring the GeoBoundaries extractor.
+  The previous behavior (downloading the single global geodatabase from UNOCHA's
+  Humanitarian Data Exchange) is retained as an automatic fallback when a country
+  or level is not available in the repository.
+  - Added extractor tests covering the repository URL, the global-dataset fallback,
+    and the extract signature.
+- UNOCHA transformer now dispatches on the shape file type: it zstd-decompresses and
+  reads the per-country/level `.gpkg.zstd` GeoPackage (layer `UNOCHA-<ISO>-ADM<level>`)
+  from the laser-base repository, and retains the existing global `.gdb.zip`
+  unzip-and-filter logic as the fallback path. Unsupported formats now raise `ValueError`.
+  - Added `zstandard` as an explicit dependency.
+  - Added transformer tests for the repository `.gpkg.zstd` path (real decompression
+    and GeoPackage I/O), the global `.zip` fallback path, unsupported-format rejection,
+    and the transform signature.
+- Packaging and release readiness:
+  - `rastertoolkit` is now a regular PyPI dependency (`>=0.4.9`) instead of a git
+    source, so the package is installable from PyPI; removed `[tool.uv.sources]`.
+  - Added `[project]` metadata: `license = "MIT"` (+ `license-files`), `authors`,
+    `keywords`, trove `classifiers`, and `[project.urls]`.
+  - Set the development Python to 3.12 (`.python-version`); `requires-python` remains
+    `>=3.10`.
+  - CLI minimum year is now 2000 (was 1950), matching the earliest year supported by
+    the data sources (WorldPop), so out-of-range years are rejected up front.
+  - Migrated the deprecated top-level Ruff lint settings into `[tool.ruff.lint]` and
+    stopped enforcing `E501` (the formatter owns line wrapping); the repository is now
+    clean under `ruff check` and `ruff format`.
+  - Lowered the coverage gate from 90% to 85% to reflect current coverage (~86%);
+    flagged in `pytest.ini` to be ratcheted back up as coverage improves.
+
+### Added
+- Continuous integration workflow (`.github/workflows/ci.yml`): a lint/format job on
+  Python 3.12 and a test job matrix on Python 3.10 and 3.14.
+- Pipeline component interfaces and a central registry:
+  - `laser.init.interfaces` defines `typing.Protocol` contracts for each component
+    family (shape/raster/stats extractors, shape/stats transformers, model loaders).
+  - `laser.init.registry` is now the single source of truth mapping source/mode names
+    to component classes; the CLI dispatches through it instead of repeating literal
+    `{name: Class}` dictionaries at six call sites, so a shape source's extractor and
+    transformer can no longer drift apart.
+  - Added `tests/test_registry.py`: Protocol conformance for every registered
+    component, registry/CLI option consistency, and lookup/error behavior.
 - Comprehensive documentation overhaul
   - Updated pyproject.toml with proper package description
   - Completely rewrote README.md with installation instructions, prerequisites, troubleshooting, advanced usage, and comprehensive examples

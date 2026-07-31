@@ -4,7 +4,7 @@ This module tests model template generation for SI, SIR, SEIR, and Measles
 epidemiological models.
 """
 
-from laser.init.models import si, sir, seir, plot, measles, measles_plot
+from laser.init.models import measles, measles_plot, plot, seir, si, sir
 
 
 class TestModelModulesExist:

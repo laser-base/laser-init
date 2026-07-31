@@ -4,9 +4,8 @@ This module tests model loader functionality for both ABM (Agent-Based Models)
 and MPM (Metapopulation Models), including script generation and configuration.
 """
 
-from pathlib import Path
-
 import pytest
+
 from laser.init.loaders import abm, mpm
 
 

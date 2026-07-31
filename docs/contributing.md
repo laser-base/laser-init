@@ -90,6 +90,30 @@ All new features and bug fixes must include tests. See [Testing](#testing).
 - Update `README.md` if user-facing changes
 - Add entry to `CHANGELOG.md`
 
+The documentation is built with [MkDocs](https://www.mkdocs.org/) (Material theme,
+with API reference generated from docstrings via `mkdocstrings`). To preview and
+build it locally:
+
+```shell
+# Preview with live reload at http://127.0.0.1:8000
+uv run mkdocs serve
+
+# Build the static site into ./site (the same --strict build that CI runs;
+# fails on broken links or references)
+uv run mkdocs build --strict
+```
+
+Documentation layout:
+
+- Prose pages live in `docs/` and are organized by the `nav` in `mkdocs.yml`.
+- API reference pages live in `docs/api/` — one Markdown file per module containing
+  a `::: laser.init.<module>` block that mkdocstrings renders from the docstrings.
+- When you add a new module that should appear in the API reference, add a matching
+  page under `docs/api/` and a `nav` entry in `mkdocs.yml`.
+
+The docs are deployed to GitHub Pages automatically on push to `main` by
+`.github/workflows/docs.yml`.
+
 ### 5. Test Your Changes
 
 ```shell

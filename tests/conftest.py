@@ -9,9 +9,10 @@ import os
 import shutil
 from pathlib import Path
 
-import laser.init.config as cfg
 import pytest
 import yaml
+
+import laser.init.config as cfg
 
 
 @pytest.fixture
